@@ -37,7 +37,6 @@ This is a full-stack Fiverr-like freelance marketplace built using the **MERN st
 
 ### 💬 Optional Integrations:
 - Socket.io (Chat)
-- Firebase (as alternative to Cloudinary)
 
 ---
 
