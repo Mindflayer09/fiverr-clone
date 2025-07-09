@@ -1,9 +1,10 @@
 // index.js
-
+import gigRoutes from "./routes/gigs.js";
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import orderRoutes from "./routes/order.js";
 
 // ✅ Import route files
 import authRoutes from './routes/Auth.js'; // <-- fix casing to match file name
@@ -21,6 +22,8 @@ app.use(express.json());
 
 // ✅ Routes
 app.use('/api/auth', authRoutes); // <-- mount auth route
+app.use("/api/gigs", gigRoutes); // <-- mount gig route
+app.use("/api/orders", orderRoutes); // <-- mount order route
 
 // ✅ Test route
 app.get('/', (req, res) => {

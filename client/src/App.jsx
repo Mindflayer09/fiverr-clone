@@ -4,6 +4,10 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import MyGigs from "./pages/MyGigs";
+import Gigs from "./pages/Gigs";
+import GigDetails from "./pages/GigDetails";
+import Orders from "./pages/Orders";
 
 function App() {
   return (
@@ -22,6 +26,10 @@ function App() {
           <Route path="/" element={<h2 className="text-center text-2xl">Welcome to Freelance Marketplace</h2>} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/my-gigs" element={<MyGigs />} />
+          <Route path="/gigs" element={<Gigs />} />
+          <Route path="/gig/:id" element={<GigDetails />} />
+          <Route path="/orders" element={<Orders />} />
         </Routes>
       </div>
     </Router>

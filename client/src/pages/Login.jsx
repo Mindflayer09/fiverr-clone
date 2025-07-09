@@ -3,9 +3,12 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const { register, handleSubmit } = useForm();
+  const navigate = useNavigate();
+
 
   const onSubmit = async (data) => {
     try {
@@ -13,6 +16,12 @@ function Login() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       alert("Login successful");
+      if (res.data.user.role === "client") {
+      navigate("/gigs");
+    } else {
+      navigate("/my-gigs"); // for freelancer
+    }
+ // or "/dashboard", or based on role
     } catch (err) {
       alert(err.response?.data?.msg || "Login failed");
     }
