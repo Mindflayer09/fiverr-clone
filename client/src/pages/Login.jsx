@@ -1,14 +1,13 @@
-// client/src/pages/Login.jsx
-
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Login() {
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
-
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     try {
@@ -16,12 +15,12 @@ function Login() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       alert("Login successful");
+
       if (res.data.user.role === "client") {
-      navigate("/gigs");
-    } else {
-      navigate("/my-gigs"); // for freelancer
-    }
- // or "/dashboard", or based on role
+        navigate("/gigs");
+      } else {
+        navigate("/my-gigs");
+      }
     } catch (err) {
       alert(err.response?.data?.msg || "Login failed");
     }
@@ -42,12 +41,22 @@ function Login() {
           className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
 
-        <input
-          {...register("password")}
-          type="password"
-          placeholder="Password"
-          className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+        {/* ✅ Password with eye toggle */}
+        <div className="relative">
+          <input
+            {...register("password")}
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            className="w-full border border-gray-300 rounded-md p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
+        </div>
 
         <button
           type="submit"

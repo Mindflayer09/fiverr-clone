@@ -5,6 +5,15 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+router.get("/user/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("username email");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ msg: "User not found" });
+  }
+});
+
 // Register
 router.post("/register", async (req, res) => {
   try {

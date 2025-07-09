@@ -1,13 +1,27 @@
 // client/src/App.js
 
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link , useParams } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import MyGigs from "./pages/MyGigs";
 import Gigs from "./pages/Gigs";
 import GigDetails from "./pages/GigDetails";
 import Orders from "./pages/Orders";
+import Chat from "./pages/Chat";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
+
+const user = JSON.parse(localStorage.getItem("user") || "null");
+const userId = user?._id; //  Safe access
+
+socket.emit("join", userId);
+
+const ChatWrapper = () => {
+  const { id } = useParams();
+  return <Chat receiverId={id} />;
+};
 
 function App() {
   return (
@@ -20,8 +34,9 @@ function App() {
           <Link to="/login" className="text-gray-700 hover:text-green-600">Login</Link>
         </div>
       </nav>
-
+      
       <div className="p-6">
+        
         <Routes>
           <Route path="/" element={<h2 className="text-center text-2xl">Welcome to Freelance Marketplace</h2>} />
           <Route path="/register" element={<Register />} />
@@ -30,6 +45,7 @@ function App() {
           <Route path="/gigs" element={<Gigs />} />
           <Route path="/gig/:id" element={<GigDetails />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/chat/:id" element={<ChatWrapper />} />
         </Routes>
       </div>
     </Router>

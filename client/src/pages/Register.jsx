@@ -1,17 +1,18 @@
-// client/src/pages/Register.jsx
-
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Register() {
   const { register, handleSubmit } = useForm();
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     try {
       const res = await axios.post("http://localhost:5000/api/auth/register", data);
       alert(res.data.msg);
     } catch (err) {
+      console.error("Registration error:", err.response?.data || err.message);
       alert(err.response?.data?.msg || "Registration failed");
     }
   };
@@ -38,12 +39,22 @@ function Register() {
           className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
 
-        <input
-          {...register("password")}
-          type="password"
-          placeholder="Password"
-          className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+        {/* ✅ Password Field with Eye Toggle */}
+        <div className="relative">
+          <input
+            {...register("password")}
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            className="w-full border border-gray-300 rounded-md p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
+        </div>
 
         <select
           {...register("role")}
