@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 
 // ✅ Import Routes
 import authRoutes from "./routes/Auth.js";
-import gigRoutes from "./routes/gigs.js";
+import gigRoutes from "./routes/Gigs.js";
 import orderRoutes from "./routes/order.js";
 import messageRoutes from "./routes/messages.js";
 
