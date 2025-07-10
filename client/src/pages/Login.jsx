@@ -27,43 +27,80 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md space-y-6"
+        className="bg-white w-full max-w-md shadow-xl rounded-2xl p-8 space-y-6"
       >
-        <h2 className="text-2xl font-bold text-gray-800 text-center">Welcome Back</h2>
+        <h2 className="text-3xl font-extrabold text-center text-green-600">
+          Login to Your Account
+        </h2>
+        <p className="text-sm text-gray-500 text-center">
+          Choose your role and start your journey
+        </p>
 
-        <input
-          {...register("email")}
-          type="email"
-          placeholder="Email"
-          className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            {...register("email")}
+            type="email"
+            placeholder="you@example.com"
+            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          />
+        </div>
 
-        {/* ✅ Password with eye toggle */}
+        {/* Password with toggle */}
         <div className="relative">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <input
             {...register("password")}
             type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            className="w-full border border-gray-300 rounded-md p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="••••••••"
+            className="w-full border border-gray-300 rounded-lg p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+            className="absolute right-3 top-9 text-gray-500"
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
 
+        {/* Role Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Login As</label>
+          <select
+            {...register("role")}
+            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          >
+            <option value="">Select Role</option>
+            <option value="client">Client</option>
+            <option value="freelancer">Freelancer</option>
+          </select>
+        </div>
+
+        {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition"
+          className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
         >
           Login
         </button>
+
+        {/* Forgot Password */}
+        <div className="text-center">
+          <a
+            href="/forgot-password"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Forgot your password?
+          </a>
+        </div>
       </form>
     </div>
   );

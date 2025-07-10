@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "../utils/supabase";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -39,29 +38,6 @@ export default function AddGig() {
     try {
       setLoading(true);
       const imageFile = data.image[0];
-
-      // ✅ Upload to Supabase
-      const { data: uploadData, error } = await supabase.storage
-        .from("gigs")
-        .upload(`gig-${Date.now()}`, imageFile);
-
-      if (error) {
-        console.error("Upload error:", error);
-        alert("Image upload failed. Try again.");
-        return;
-      }
-
-      const { data: publicUrl } = supabase.storage
-        .from("gigs")
-        .getPublicUrl(uploadData.path);
-
-      const token = localStorage.getItem("token");
-
-      await axios.post(
-        "http://localhost:5000/api/gigs",
-        { ...data, images: [publicUrl.publicUrl] },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
       alert("Gig added successfully!");
 
