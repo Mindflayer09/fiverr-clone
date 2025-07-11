@@ -30,10 +30,12 @@ const ChatWrapper = () => {
 
 function App() {
   return (
+    <div className="min-h-screen bg-gray-100"> {/* ✅ Gray background wrapper */}
+
     <Router>
     <Navbar /> {/* ✅ Appears on every page */}
         <Routes>
-          <Route path="/" element={<h2 className="text-center text-2xl">Welcome to Freelance Marketplace</h2>} />
+          <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/my-gigs" element={<MyGigs />} />
@@ -47,6 +49,7 @@ function App() {
           <Route path="/home" element={<Home />} />
         </Routes>
     </Router>
+    </div>
   );
 }
 
