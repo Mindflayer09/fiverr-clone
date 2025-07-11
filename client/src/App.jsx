@@ -1,27 +1,26 @@
-// client/src/App.js
+// client/src/App.jsx
 
-import React from "react";
-import { BrowserRouter as Router, Routes, Route , useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
+import { io } from "socket.io-client";
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Home from "./pages/Home";
 import MyGigs from "./pages/MyGigs";
 import Gigs from "./pages/Gigs";
 import GigDetails from "./pages/GigDetails";
+import AddGig from "./pages/AddGig";
 import Orders from "./pages/Orders";
 import Chat from "./pages/Chat";
-import { io } from "socket.io-client";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import AddGig from "./pages/AddGig";
+import ClientDashboard from "./pages/ClientDashboard";
+import FreelancerDashboard from "./pages/FreelancerDashboard";
 
 const socket = io("http://localhost:5000");
-
-const user = JSON.parse(localStorage.getItem("user") || "null");
-const userId = user?._id; //  Safe access
-
-socket.emit("join", userId);
 
 const ChatWrapper = () => {
   const { id } = useParams();
@@ -29,26 +28,49 @@ const ChatWrapper = () => {
 };
 
 function App() {
-  return (
-    <div className="min-h-screen bg-gray-100"> {/* ✅ Gray background wrapper */}
+  useEffect(() => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  if (storedUser?._id) {
+    socket.emit("join", storedUser._id);
+  }
+}, []);
 
-    <Router>
-    <Navbar /> {/* ✅ Appears on every page */}
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Router>
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/my-gigs" element={<MyGigs />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/gigs" element={<Gigs />} />
           <Route path="/gig/:id" element={<GigDetails />} />
           <Route path="/add-gig" element={<AddGig />} />
+          <Route path="/my-gigs" element={<MyGigs />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/chat/:id" element={<ChatWrapper />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/home" element={<Home />} />
+
+          {/*  Dashboards with role-based protection */}
+          <Route
+            path="/dashboard/client"
+            element={
+              <ProtectedRoute requiredRole="client">
+                <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/freelancer"
+            element={
+              <ProtectedRoute requiredRole="freelancer">
+                <FreelancerDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-    </Router>
+      </Router>
     </div>
   );
 }

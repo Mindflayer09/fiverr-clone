@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 import GigCard from "../components/GigCard";
@@ -7,6 +6,7 @@ export default function Gigs() {
   const [gigs, setGigs] = useState([]);
   const [search, setSearch] = useState("");
   const [filteredGigs, setFilteredGigs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchGigs = async () => {
@@ -16,6 +16,8 @@ export default function Gigs() {
         setFilteredGigs(res.data);
       } catch (err) {
         alert("Error loading gigs");
+      } finally {
+        setLoading(false);
       }
     };
     fetchGigs();
@@ -35,7 +37,7 @@ export default function Gigs() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
-      <h1 className="text-4xl font-bold mb-6 text-center text-gray-800">
+      <h1 className="text-4xl font-extrabold mb-8 text-center text-gray-800">
         Explore Freelance Gigs
       </h1>
 
@@ -44,14 +46,24 @@ export default function Gigs() {
         placeholder="Search by title or description..."
         value={search}
         onChange={handleSearch}
-        className="w-full mb-8 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+        className="w-full mb-8 p-4 border border-green-500 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition"
       />
 
-      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {filteredGigs.map((gig) => (
-          <GigCard key={gig._id} gig={gig} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center text-gray-500 mt-20 animate-pulse">
+          Loading gigs...
+        </div>
+      ) : filteredGigs.length === 0 ? (
+        <div className="text-center text-red-500 mt-10 text-lg">
+          No gigs found. Try a different search term.
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {filteredGigs.map((gig) => (
+            <GigCard key={gig._id} gig={gig} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

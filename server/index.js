@@ -10,6 +10,7 @@ import authRoutes from "./routes/Auth.js";
 import gigRoutes from "./routes/Gigs.js";
 import orderRoutes from "./routes/order.js";
 import messageRoutes from "./routes/messages.js";
+import reviewRoutes from "./routes/reviews.js";
 
 // ✅ Load .env
 dotenv.config();
@@ -29,6 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/gigs", gigRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // ✅ Default route
 app.get("/", (req, res) => {

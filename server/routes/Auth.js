@@ -18,16 +18,37 @@ router.get("/user/:id", async (req, res) => {
 // Register
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password , role } = req.body;
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ msg: "Email already in use" });
+    const { username, email, password, role } = req.body;
 
-    const hashed = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashed, role });
+    // Check if email exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "Email already exists" });
+    }
+
+    // Save user (password should be hashed via User model pre-save)
+    const newUser = new User({ username, email, password, role });
     await newUser.save();
-    res.status(201).json({ msg: "User registered" });
+
+    // Generate JWT
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // Respond with token + user info
+    res.status(201).json({
+      msg: `Welcome, ${newUser.username}!`,
+      token,
+      user: {
+        _id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      },
+    });
   } catch (err) {
-    res.status(500).json({ msg: "Server error" });
+    console.error("Registration error:", err);
+    res.status(500).json({ msg: "Server error during registration" });
   }
 });
 

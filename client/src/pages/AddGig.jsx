@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,7 +22,7 @@ export default function AddGig() {
       alert("Access denied: freelancers only");
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const {
     register,
