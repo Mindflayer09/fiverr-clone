@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import http from "http"; // For socket.io
 import { Server } from "socket.io";
+import uploadRoutes from "./routes/upload.js";
 
 // ✅ Import Routes
 import authRoutes from "./routes/Auth.js";
@@ -31,6 +32,7 @@ app.use("/api/gigs", gigRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // ✅ Default route
 app.get("/", (req, res) => {
