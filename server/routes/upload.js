@@ -11,6 +11,8 @@ const upload = multer({ storage });
 router.post("/gig-image", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const file = req.file;
+    if (!file) return res.status(400).json({ error: "No file uploaded" });
+
     const fileName = `gig-${Date.now()}-${file.originalname}`;
 
     const { data, error } = await supabase.storage

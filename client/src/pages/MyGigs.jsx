@@ -5,21 +5,29 @@ import { useNavigate } from "react-router-dom";
 export default function MyGigs() {
   const [gigs, setGigs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
-
-  // Redirect if not freelancer
+  // Load user and token, redirect if not freelancer
   useEffect(() => {
-    if (!user || user.role !== "freelancer") {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const storedToken = localStorage.getItem("token");
+
+    if (!storedUser || storedUser.role !== "freelancer") {
       alert("Access denied: freelancers only");
       navigate("/");
+      return;
     }
-  }, [navigate, user]);
+
+    setUser(storedUser);
+    setToken(storedToken);
+  }, [navigate]);
 
   // Fetch user's gigs
   useEffect(() => {
+    if (!user || !token) return;
+
     const fetchGigs = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/gigs/user/${user._id}`, {
@@ -35,7 +43,7 @@ export default function MyGigs() {
     };
 
     fetchGigs();
-  }, [token, user._id]);
+  }, [user, token]);
 
   // Delete gig
   const handleDelete = async (id) => {
@@ -69,7 +77,7 @@ export default function MyGigs() {
               className="border rounded-xl shadow p-4 bg-white flex flex-col justify-between"
             >
               <img
-                src={gig.images[0]}
+                src={gig.images?.[0] || "/fallback.jpg"}
                 alt={gig.title}
                 className="rounded-md w-full h-40 object-cover mb-4"
               />

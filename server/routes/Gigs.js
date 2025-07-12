@@ -3,9 +3,14 @@ import Gig from "../models/Gig.js";
 import { verifyToken } from "../middleware/auth.js";
 import { createClient } from "@supabase/supabase-js";
 import { deleteImageFromSupabase } from "../utils/supabase.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const router = express.Router();
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 // CREATE
 router.post("/", verifyToken, async (req, res) => {

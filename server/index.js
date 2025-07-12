@@ -4,29 +4,40 @@ import dotenv from "dotenv";
 import cors from "cors";
 import http from "http"; // For socket.io
 import { Server } from "socket.io";
-import uploadRoutes from "./routes/upload.js";
 
-// ✅ Import Routes
+//  Load .env before anything else
+dotenv.config();
+
+const REQUIRED_ENV_VARS = [
+  "MONGO_URI",
+  "JWT_SECRET",
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+];
+for (const varName of REQUIRED_ENV_VARS) {
+  if (!process.env[varName]) {
+    console.error(`❌ Missing required environment variable: ${varName}`);
+    process.exit(1);
+  }
+}
+
+//  Import Routes
 import authRoutes from "./routes/Auth.js";
 import gigRoutes from "./routes/Gigs.js";
 import orderRoutes from "./routes/order.js";
 import messageRoutes from "./routes/messages.js";
 import reviewRoutes from "./routes/reviews.js";
+import uploadRoutes from "./routes/upload.js";
 
-// ✅ Load .env
-dotenv.config();
-
-// ✅ Express app
+//  Initialize express app
 const app = express();
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true,
+}));
 app.use(express.json());
 
-// ✅ API Routes
+//  API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/gigs", gigRoutes);
 app.use("/api/orders", orderRoutes);
@@ -34,12 +45,12 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
 
-// ✅ Default route
+//  Default route
 app.get("/", (req, res) => {
-  res.send("API is working...");
+  res.send("✅ API is running...");
 });
 
-// ✅ Create HTTP server for socket.io
+//  Create HTTP server and Socket.IO instance
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -49,21 +60,19 @@ const io = new Server(server, {
   },
 });
 
-// ✅ Track online users
+//  Track online users
 const onlineUsers = new Map();
 
-// ✅ Socket.io logic
+//  Socket.IO logic
 io.on("connection", (socket) => {
   console.log("🔌 User connected:", socket.id);
 
-  // User joins (register socket ID)
   socket.on("join", (userId) => {
     onlineUsers.set(userId, socket.id);
     io.emit("onlineUsers", Array.from(onlineUsers.keys()));
     console.log("✅ User joined:", userId);
   });
 
-  // Handle message sending
   socket.on("sendMessage", (msg) => {
     const receiverSocketId = onlineUsers.get(msg.receiverId);
     if (receiverSocketId) {
@@ -71,7 +80,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Typing indicator
   socket.on("typing", ({ receiverId }) => {
     const receiverSocketId = onlineUsers.get(receiverId);
     if (receiverSocketId) {
@@ -79,7 +87,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // User disconnects
   socket.on("disconnect", () => {
     for (const [userId, sockId] of onlineUsers.entries()) {
       if (sockId === socket.id) {
@@ -92,7 +99,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// ✅ Connect to DB and launch server
+//  Connect to MongoDB and start server
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
@@ -103,4 +110,5 @@ mongoose
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1);
   });

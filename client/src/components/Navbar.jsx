@@ -38,13 +38,16 @@ function Navbar() {
       {/* Nav Links */}
       <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-white font-medium">
         <Link to="/" className="hover:text-green-400 transition">Home</Link>
-        <Link to="/gigs" className="hover:text-green-400 transition">Gigs</Link>
+        <Link to="/gigs" className="hover:text-green-400 transition">GIGs</Link>
 
         {user?.role === "freelancer" && (
-          <Link to="/my-gigs" className="hover:text-green-400 transition">My Gigs</Link>
+          <>
+            <Link to="/my-gigs" className="hover:text-green-400 transition">MY GIGs</Link>
+            <Link to="/add-gig" className="hover:text-green-400 transition">ADD GIG</Link>
+          </>
         )}
         {user?.role === "client" && (
-          <Link to="/orders" className="hover:text-green-400 transition">Orders</Link>
+          <Link to="/orders" className="hover:text-green-400 transition">ORDERS</Link>
         )}
 
         {!user ? (
