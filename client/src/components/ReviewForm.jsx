@@ -13,6 +13,7 @@ const reviewSchema = z.object({
 const ReviewForm = ({ gigId, token }) => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
@@ -27,6 +28,7 @@ const ReviewForm = ({ gigId, token }) => {
 
   const onSubmit = async (data) => {
     try {
+      setSubmitting(true);
       await axios.post(
         "/api/reviews",
         { ...data, gigId },
@@ -34,25 +36,29 @@ const ReviewForm = ({ gigId, token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Review submitted!");
+      alert("✅ Review submitted!");
       reset();
-      setRating(0); // Reset star UI too
+      setRating(0);
     } catch (err) {
-      alert(err.response?.data?.message || "Error submitting review");
+      alert(err.response?.data?.message || "❌ Error submitting review");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white p-6 rounded-xl shadow-md space-y-5 max-w-md mx-auto"
+      className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 max-w-lg mx-auto mt-10"
     >
-      <h2 className="text-xl font-semibold text-gray-800">Leave a Review</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">⭐ Leave a Review</h2>
 
       {/* ⭐ Star Rating */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-        <div className="flex gap-1">
+      <div className="mb-5">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Rating
+        </label>
+        <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <FaStar
               key={star}
@@ -74,23 +80,32 @@ const ReviewForm = ({ gigId, token }) => {
       </div>
 
       {/* 📝 Comment Field */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Comment
+        </label>
         <textarea
           {...register("comment")}
           rows="4"
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          placeholder="Write your experience..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 resize-none transition"
         />
         {errors.comment && (
           <p className="text-sm text-red-500 mt-1">{errors.comment.message}</p>
         )}
       </div>
 
+      {/* ✅ Submit Button */}
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        disabled={submitting}
+        className={`w-full py-2 rounded-lg text-white font-medium transition ${
+          submitting
+            ? "bg-blue-300 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
+        }`}
       >
-        Submit Review
+        {submitting ? "Submitting..." : "Submit Review"}
       </button>
     </form>
   );

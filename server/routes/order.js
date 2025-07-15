@@ -1,44 +1,121 @@
 import express from "express";
 import Order from "../models/Order.js";
-import { verifyToken } from "../middleware/auth.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-// ✅ Place new order
+/** ---------------------------
+ *  Place a New Order
+ *  POST /api/orders
+ * ---------------------------- */
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const newOrder = new Order({
-      ...req.body,  // expects buyerId, sellerId, gigId
-    });
-    const saved = await newOrder.save();
-    res.status(201).json(saved);
+    const buyerId = req.user.id;
+    const { sellerId, gigId } = req.body;
+
+    if (!sellerId || !gigId) {
+      return res.status(400).json({ message: "Missing sellerId or gigId" });
+    }
+
+    const newOrder = new Order({ buyerId, sellerId, gigId });
+    const savedOrder = await newOrder.save();
+
+    res.status(201).json(savedOrder);
   } catch (err) {
-    res.status(500).json(err);
+    console.error("❌ Order creation failed:", err);
+    res.status(500).json({
+      message: "Server error while placing order",
+      error: err.message,
+    });
   }
 });
 
-// ✅ Get orders for a specific user (buyer or seller)
+/** ---------------------------
+ *  Get Orders Placed or Received by Logged-in User
+ *  GET /api/orders/user/:id
+ * ---------------------------- */
 router.get("/user/:id", verifyToken, async (req, res) => {
   try {
-    const orders = await Order.find({
-      $or: [{ buyerId: req.params.id }, { sellerId: req.params.id }]
-    }).populate("gigId").sort({ createdAt: -1 });
+    const userId = req.params.id;
+
+    if (req.user.id !== userId) {
+      return res.status(403).json({ message: "Unauthorized access." });
+    }
+
+    const query =
+      req.user.role === "freelancer"
+        ? { sellerId: userId }
+        : { buyerId: userId };
+
+    const orders = await Order.find(query)
+      .populate("gigId", "title images")
+      .populate("buyerId", "username")
+      .populate("sellerId", "username")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(orders);
   } catch (err) {
-    res.status(500).json(err);
+    console.error("❌ Error fetching user orders:", err);
+    res.status(500).json({ message: "Server error fetching orders" });
   }
 });
 
-// ✅ Update order status (freelancer updates)
-router.put("/:orderId", verifyToken, async (req, res) => {
+/** ---------------------------
+ *  Get All Orders Received by Freelancer (based on sellerId)
+ *  GET /api/orders/received/:freelancerId
+ * ---------------------------- */
+router.get("/received/:freelancerId", verifyToken, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.orderId);
-    order.status = req.body.status;
-    await order.save();
-    res.status(200).json(order);
+    const freelancerId = req.params.freelancerId;
+
+    if (req.user.id !== freelancerId) {
+      return res.status(403).json({ message: "Unauthorized access." });
+    }
+
+    const receivedOrders = await Order.find({ sellerId: freelancerId })
+      .populate("gigId", "title images")
+      .populate("buyerId", "username")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(receivedOrders);
   } catch (err) {
-    res.status(500).json(err);
+    console.error("❌ Failed to fetch received orders:", err);
+    res.status(500).json({ error: "Server error fetching received orders" });
+  }
+});
+
+
+/** ---------------------------
+ *  Update Order Status (Accept, Reject, Complete)
+ *  PUT /api/orders/:id/status
+ * ---------------------------- */
+router.put("/:id/status", verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = ["pending", "accepted", "rejected", "completed"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid status value." });
+  }
+
+  try {
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.sellerId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized to update this order." });
+    }
+
+    order.status = status;
+    const updatedOrder = await order.save();
+
+    res.json(updatedOrder);
+  } catch (err) {
+    console.error("❌ Failed to update order status:", err);
+    res.status(500).json({ error: "Server error updating order status" });
   }
 });
 

@@ -1,60 +1,50 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
-function Navbar() {
+const Navbar = () => {
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-
-    const handleStorage = () => {
-      const updatedUser = localStorage.getItem("user");
-      setUser(updatedUser ? JSON.parse(updatedUser) : null);
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, [location]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+    logout();
     toast.success("Logged out successfully!");
     navigate("/login");
   };
 
   return (
-    <nav className="bg-black shadow-md px-6 py-4 flex flex-wrap justify-between items-center">
+    <nav className="bg-black text-white px-6 py-4 shadow-md flex justify-between items-center flex-wrap">
       {/* Brand */}
-      <div className="text-green-500 font-extrabold text-2xl mb-2 sm:mb-0">
-        <Link to="/">Fiverr.</Link>
-      </div>
+      <Link to="/" className="text-2xl font-bold text-green-500">
+        Fiverr.
+      </Link>
 
-      {/* Nav Links */}
-      <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-white font-medium">
+      {/* Navigation Links */}
+      <div className="flex flex-wrap gap-4 items-center text-sm sm:text-base">
         <Link to="/" className="hover:text-green-400 transition">Home</Link>
-        <Link to="/gigs" className="hover:text-green-400 transition">GIGs</Link>
+        <Link to="/gigs" className="hover:text-green-400 transition">Gigs</Link>
 
         {user?.role === "freelancer" && (
           <>
-            <Link to="/my-gigs" className="hover:text-green-400 transition">MY GIGs</Link>
-            <Link to="/add-gig" className="hover:text-green-400 transition">ADD GIG</Link>
+            <Link to="/my-gigs" className="hover:text-green-400 transition">My Gigs</Link>
+            <Link to="/add-gig" className="hover:text-green-400 transition">Add Gig</Link>
+            <Link to="/dashboard/freelancer" className="hover:text-green-400 transition">Dashboard</Link>
           </>
         )}
+
         {user?.role === "client" && (
-          <Link to="/orders" className="hover:text-green-400 transition">ORDERS</Link>
+          <>
+            <Link to="/orders" className="hover:text-green-400 transition">Orders</Link>
+            <Link to="/dashboard/client" className="hover:text-green-400 transition">Dashboard</Link>
+          </>
         )}
 
         {!user ? (
           <>
             <Link
               to="/login"
-              className="bg-green-600 px-4 py-2 rounded-md text-white hover:bg-green-700 transition"
+              className="bg-green-600 px-4 py-2 rounded-md hover:bg-green-700 transition"
             >
               Login
             </Link>
@@ -66,7 +56,7 @@ function Navbar() {
             </Link>
           </>
         ) : (
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
             <span className="text-gray-300 text-sm">
               👋 Hi, <span className="font-semibold">{user.username}</span>
             </span>
@@ -81,6 +71,6 @@ function Navbar() {
       </div>
     </nav>
   );
-}
+};
 
 export default Navbar;

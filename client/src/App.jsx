@@ -1,11 +1,10 @@
 // client/src/App.jsx
 
 import { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useParams, Navigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -19,6 +18,7 @@ import Orders from "./pages/Orders";
 import Chat from "./pages/Chat";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
+import { useAuth } from "./context/AuthContext";
 
 const socket = io("http://localhost:5000");
 
@@ -28,12 +28,13 @@ const ChatWrapper = () => {
 };
 
 function App() {
+  const { user } = useAuth();
+
   useEffect(() => {
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  if (storedUser?._id) {
-    socket.emit("join", storedUser._id);
-  }
-}, []);
+    if (user?._id) {
+      socket.emit("join", user._id);
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -52,7 +53,23 @@ function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/chat/:id" element={<ChatWrapper />} />
 
-          {/*  Dashboards with role-based protection */}
+          {/* ✅ NEW ROLE-BASED REDIRECT FOR /dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                {user?.role === "freelancer" ? (
+                  <Navigate to="/dashboard/freelancer" />
+                ) : user?.role === "client" ? (
+                  <Navigate to="/dashboard/client" />
+                ) : (
+                  <Navigate to="/" />
+                )}
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ Specific dashboards */}
           <Route
             path="/dashboard/client"
             element={

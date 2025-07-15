@@ -1,107 +1,116 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { FaSpinner } from "react-icons/fa";
+import { getLoggedInUser } from "../utils/getLoggedInUser";
 
-export default function MyGigs() {
+// Replace this with: import.meta.env.VITE_API_BASE_URL in production
+const BASE_URL = "http://localhost:5000";
+
+const MyGigs = () => {
   const [gigs, setGigs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const navigate = useNavigate();
+  const [error, setError] = useState("");
 
-  // Load user and token, redirect if not freelancer
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const storedToken = localStorage.getItem("token");
-
-    if (!storedUser || storedUser.role !== "freelancer") {
-      alert("Access denied: freelancers only");
-      navigate("/");
-      return;
-    }
-
-    setUser(storedUser);
-    setToken(storedToken);
-  }, [navigate]);
-
-  // Fetch user's gigs
-  useEffect(() => {
-    if (!user || !token) return;
-
     const fetchGigs = async () => {
+      const user = getLoggedInUser();
+      console.log("👤 Logged in user:", user);
+
+      if (!user || (!user._id && !user.id)) {
+        setError("⚠️ You must be logged in to view your gigs.");
+        setLoading(false);
+        return;
+      }
+
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+
+      if (!token) {
+        setError("❌ Authentication token missing. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await axios.get(`http://localhost:5000/api/gigs/user/${user._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const userId = user._id || user.id;
+        const response = await axios.get(`${BASE_URL}/api/gigs/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setGigs(res.data);
+
+        if (!Array.isArray(response.data)) {
+          throw new Error("Unexpected response from server.");
+        }
+
+        setGigs(response.data);
       } catch (err) {
-        console.error("Failed to fetch gigs:", err);
-        alert("Could not load your gigs.");
+        console.error("❌ Error fetching gigs:", err);
+        setError(
+          err.response?.data?.msg ||
+            err.response?.data?.message ||
+            "Failed to fetch gigs."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchGigs();
-  }, [user, token]);
+  }, []);
 
-  // Delete gig
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this gig?")) return;
-
-    try {
-      await axios.delete(`http://localhost:5000/api/gigs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setGigs(gigs.filter((gig) => gig._id !== id));
-      alert("Gig deleted");
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Failed to delete gig");
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <FaSpinner className="animate-spin text-4xl text-blue-500" />
+        <span className="ml-4 text-lg font-medium">Loading your gigs...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold mb-6 text-center">My Gigs</h1>
+    <div className="min-h-screen bg-gray-100 py-20 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-4xl font-bold mb-10 text-center text-gray-800">
+          📦 My Gigs
+        </h2>
 
-      {loading ? (
-        <p className="text-center">Loading...</p>
-      ) : gigs.length === 0 ? (
-        <p className="text-center text-gray-500">You haven't posted any gigs yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {gigs.map((gig) => (
-            <div
-              key={gig._id}
-              className="border rounded-xl shadow p-4 bg-white flex flex-col justify-between"
-            >
-              <img
-                src={gig.images?.[0] || "/fallback.jpg"}
-                alt={gig.title}
-                className="rounded-md w-full h-40 object-cover mb-4"
-              />
-              <h2 className="text-xl font-semibold">{gig.title}</h2>
-              <p className="text-green-600 font-bold">₹{gig.price}</p>
-
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => handleDelete(gig._id)}
-                  className="flex-1 bg-red-600 text-white py-2 rounded-md hover:bg-red-700"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => navigate(`/edit-gig/${gig._id}`)}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-                >
-                  Edit
-                </button>
+        {error ? (
+          <p className="text-center text-red-600 text-lg font-semibold">{error}</p>
+        ) : gigs.length === 0 ? (
+          <p className="text-center text-gray-600 text-lg">
+            You haven’t created any gigs yet.
+          </p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {gigs.map((gig) => (
+              <div
+                key={gig._id}
+                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition"
+              >
+                <img
+                  src={
+                    gig.images?.[0]
+                      ? `${BASE_URL}${gig.images[0]}`
+                      : "https://via.placeholder.com/300x200?text=No+Image"
+                  }
+                  alt={gig.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+                <h3 className="text-xl font-semibold text-gray-800 mb-1">
+                  {gig.title}
+                </h3>
+                <p className="text-gray-600 mb-3 line-clamp-2">
+                  {gig.description}
+                </p>
+                <p className="text-blue-600 font-bold text-lg">${gig.price}</p>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default MyGigs;
