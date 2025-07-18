@@ -70,7 +70,7 @@ const Orders = () => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
-        📦 My Orders
+        📦 Orders Received
       </h2>
 
       {orders.length === 0 ? (

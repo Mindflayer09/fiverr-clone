@@ -10,12 +10,12 @@ import { AuthProvider } from "./context/AuthContext";
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AuthProvider> {/* ✅ Wrap your app with AuthProvider */}
+    <AuthProvider> {/* Wrapping app with AuthProvider */}
       <App />
       <ToastContainer position="top-center" />
     </AuthProvider>
   </React.StrictMode>
 );
 
-// Optional: for performance measurement
+// for performance measurement
 reportWebVitals();

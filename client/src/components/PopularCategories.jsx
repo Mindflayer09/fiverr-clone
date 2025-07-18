@@ -25,7 +25,7 @@ const categories = [
 
 const PopularCategories = () => {
   return (
-    <div className="flex overflow-x-auto gap-4 px-4 py-8">
+    <div className="flex overflow-x-auto gap-4 px-4 py-8 cursor-pointer">
       {categories.map((cat, index) => (
         <div
           key={index}

@@ -28,7 +28,7 @@ export default function GigCard({ gig }) {
     }
 
     try {
-      const response = await axios.post(
+       await axios.post(
         `${BASE_URL}/api/orders`,
         {
           sellerId,

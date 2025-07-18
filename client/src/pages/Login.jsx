@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 
 function Login() {
-  const { register, handleSubmit, watch } = useForm();
+  const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);

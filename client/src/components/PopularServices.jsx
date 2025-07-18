@@ -34,7 +34,7 @@ const PopularServices = () => {
         Popular Services
       </h2>
 
-      <div className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 pb-4">
+      <div className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 pb-4 cursor-pointer">
         {services.map((service, index) => (
           <div
             key={index}
