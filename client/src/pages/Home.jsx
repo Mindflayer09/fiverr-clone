@@ -13,10 +13,10 @@ const Home = () => {
 
       {/* Trusted Brands Section */}
       <section className="bg-white py-8 px-6 md:px-20 text-center border-t">
-        <h2 className="text-sm uppercase tracking-widest text-gray-600 mb-4">
+        <h2 className="text-xl font-extrabold uppercase tracking-widest text-gray-600 mb-4">
           Trusted by:
         </h2>
-        <div className="flex justify-center items-center gap-6 flex-wrap opacity-70">
+        <div className="flex justify-center items-center gap-6 flex-wrap">
           <BrandLogos />
         </div>
       </section>

@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import moment from "moment";
 
-// ✅ Connect to backend's socket.io (NOT frontend)
+// ✅ Connect to backend's socket.io
 export const socket = io("http://localhost:5000");
 
 const Chat = ({ receiverId }) => {
@@ -13,18 +13,18 @@ const Chat = ({ receiverId }) => {
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [receiver, setReceiver] = useState({});
+  const [receiver, setReceiver] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const chatBoxRef = useRef(null);
 
-  // ✅ Auto-scroll to bottom
+  // ✅ Auto-scroll to bottom on new messages
   useEffect(() => {
     if (chatBoxRef.current) {
       chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // ✅ Setup socket listeners
+  // ✅ Socket setup
   useEffect(() => {
     if (!userId) return;
 
@@ -57,7 +57,7 @@ const Chat = ({ receiverId }) => {
     };
   }, [userId]);
 
-  // ✅ Fetch messages and receiver info
+  // ✅ Fetch chat messages and receiver info
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -109,7 +109,7 @@ const Chat = ({ receiverId }) => {
     }
   };
 
-  // ✅ Emit typing
+  // ✅ Emit typing signal
   const handleTyping = () => {
     socket.emit("typing", { receiverId });
   };

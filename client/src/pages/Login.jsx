@@ -42,7 +42,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-100 via-white to-green-50 px-4">
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-8 space-y-6 max-w-md w-full">
         <h2 className="text-2xl font-bold text-center text-green-600">Login</h2>
 
@@ -59,7 +59,7 @@ function Login() {
             placeholder="••••••"
             className="w-full border p-2 rounded pr-10"
           />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-8 text-gray-500">
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-10 text-gray-500">
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>

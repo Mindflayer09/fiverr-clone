@@ -1,33 +1,59 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import DashboardLayout from "../components/DashboardLayout";
-import OrderCard from "../components/OrderCard";
 import { getLoggedInUser } from "../utils/getLoggedInUser";
+import axios from "axios";
+import OrderCard from "../components/OrderCard";
 
 const ClientDashboard = () => {
-  const [orders, setOrders] = useState([]);
   const user = getLoggedInUser();
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`/api/orders/user/${user._id}`)
-      .then((res) => setOrders(res.data))
-      .catch((err) => console.error("Failed to fetch client orders", err));
+    const fetchClientOrders = async () => {
+      try {
+        const res = await axios.get(`/api/orders/client/${user._id}`);
+        setOrders(res.data);
+      } catch (err) {
+        console.error("Error fetching client orders", err);
+      }
+    };
+
+    if (user?._id) {
+      fetchClientOrders();
+    }
   }, [user]);
+
+  // Update order status locally when changed
+  const handleStatusChange = (orderId, newStatus) => {
+    setOrders(prev =>
+      prev.map(order =>
+        order._id === orderId ? { ...order, status: newStatus } : order
+      )
+    );
+  };
 
   return (
     <DashboardLayout>
       <h1 className="text-3xl font-bold text-gray-800 mb-4">👤 Client Dashboard</h1>
-      <p className="text-gray-600 mb-6">Welcome, {user?.username}</p>
-
-      <h2 className="text-xl font-semibold mb-2 text-gray-800">🛒 Orders Placed</h2>
+      <p className="text-gray-600 mb-6">
+        Welcome, <span className="font-semibold text-gray-800">{user?.username}</span>
+      </p>
 
       {orders.length === 0 ? (
-        <p className="text-gray-500 italic">You haven't placed any orders yet.</p>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-700 text-lg font-semibold opacity-80">
+            Your Dashboard content will be displayed here..
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {orders.map((order) => (
-            <OrderCard key={order._id} order={order} isReceived={false} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+          {orders.map(order => (
+            <OrderCard
+              key={order._id}
+              order={order}
+              isReceived={false}
+              onStatusChange={handleStatusChange}
+            />
           ))}
         </div>
       )}

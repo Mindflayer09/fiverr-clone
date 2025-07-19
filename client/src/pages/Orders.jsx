@@ -10,10 +10,7 @@ const Orders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!user?.id || !token) {
-        console.warn("🔒 Missing user or token in AuthContext");
-        return;
-      }
+      if (!user?.id || !token) return;
 
       try {
         const res = await axios.get(`${BASE_URL}/api/orders/user/${user.id}`, {
@@ -32,19 +29,23 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await axios.put(
-        `${BASE_URL}/api/orders/${orderId}`,
+      const res = await axios.put(
+        `${BASE_URL}/api/orders/${orderId}/status`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
+      // Update order status in local state
+      const updatedOrder = res.data;
       setOrders((prev) =>
         prev.map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
+          order._id === orderId ? updatedOrder : order
         )
       );
     } catch (err) {
-      console.error("❌ Status update failed:", err);
+      console.error("❌ Status update failed:", err.response?.data || err.message);
     }
   };
 
@@ -52,10 +53,6 @@ const Orders = () => {
     switch (status) {
       case "pending":
         return "bg-yellow-100 text-yellow-700";
-      case "in progress":
-        return "bg-blue-100 text-blue-700";
-      case "delivered":
-        return "bg-purple-100 text-purple-700";
       case "completed":
         return "bg-green-100 text-green-700";
       default:
@@ -70,7 +67,7 @@ const Orders = () => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
-        📦 Orders Received
+        📦 {user?.role === "freelancer" ? "Orders Received" : "Orders Placed"}
       </h2>
 
       {orders.length === 0 ? (
@@ -95,37 +92,33 @@ const Orders = () => {
                     🗓️ Ordered On:{" "}
                     {new Date(order.createdAt).toLocaleDateString()}
                   </p>
-                  {order.buyerId?.username && (
+
+                  {/* Show client name only to freelancers */}
+                  {user?.role === "freelancer" && order.buyerId?.username && (
                     <p className="text-sm text-gray-500 mt-1">
                       👤 Client: {order.buyerId.username}
                     </p>
                   )}
                 </div>
 
-                {/* Status Badge */}
+                {/* Status + Action */}
                 <div className="flex flex-col md:items-end">
                   <span
                     className={`text-sm font-medium px-3 py-1 rounded-full mb-2 inline-block w-fit ${getStatusStyle(
-                      order.status
+                      order?.status
                     )}`}
                   >
-                    {order.status.toUpperCase()}
+                    {order?.status ? order.status.toUpperCase() : "UNKNOWN"}
                   </span>
 
-                  {/* Status Dropdown (Only for freelancers) */}
-                  {user?.role === "freelancer" && (
-                    <select
-                      value={order.status}
-                      onChange={(e) =>
-                        handleStatusChange(order._id, e.target.value)
-                      }
-                      className="border border-gray-300 rounded px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  {/* Show Approve button only to freelancer on PENDING orders */}
+                  {user?.role === "freelancer" && order?.status?.toLowerCase() === "pending" && (
+                    <button
+                      className="px-4 py-2 rounded-full text-white bg-green-600 hover:bg-green-700 text-sm font-medium transition"
+                      onClick={() => handleStatusChange(order._id, "completed")}
                     >
-                      <option value="pending">Pending</option>
-                      <option value="in progress">In Progress</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="completed">Completed</option>
-                    </select>
+                      Approve
+                    </button>
                   )}
                 </div>
               </div>

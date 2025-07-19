@@ -36,7 +36,7 @@ router.post("/", verifyToken, async (req, res) => {
       description,
       price,
       images,
-      userId: req.user.id, // ✅ THIS WAS THE BUG
+      userId: req.user.id, // 
     });
 
     const savedGig = await newGig.save();

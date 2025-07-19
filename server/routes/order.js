@@ -4,10 +4,10 @@ import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-/** ---------------------------
- *  Place a New Order
- *  POST /api/orders
- * ---------------------------- */
+/**
+ * Place a New Order
+ * POST /api/orders
+ */
 router.post("/", verifyToken, async (req, res) => {
   try {
     const buyerId = req.user.id;
@@ -30,10 +30,10 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
-/** ---------------------------
- *  Get Orders Placed or Received by Logged-in User
- *  GET /api/orders/user/:id
- * ---------------------------- */
+/**
+ * Get Orders for Logged-in User (Client or Freelancer)
+ * GET /api/orders/user/:id
+ */
 router.get("/user/:id", verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -60,10 +60,10 @@ router.get("/user/:id", verifyToken, async (req, res) => {
   }
 });
 
-/** ---------------------------
- *  Get All Orders Received by Freelancer (based on sellerId)
- *  GET /api/orders/received/:freelancerId
- * ---------------------------- */
+/**
+ * Get Orders Received by Freelancer
+ * GET /api/orders/received/:freelancerId
+ */
 router.get("/received/:freelancerId", verifyToken, async (req, res) => {
   try {
     const freelancerId = req.params.freelancerId;
@@ -74,26 +74,32 @@ router.get("/received/:freelancerId", verifyToken, async (req, res) => {
 
     const receivedOrders = await Order.find({ sellerId: freelancerId })
       .populate("gigId", "title images")
-      .populate("buyerId", "username")
+      .populate("buyerId", "username profilePic") 
       .sort({ createdAt: -1 });
 
-    res.status(200).json(receivedOrders);
+    // Transform the response to match frontend expectations
+    const formattedOrders = receivedOrders.map((order) => ({
+      ...order._doc,
+      gig: order.gigId,
+      buyer: order.buyerId,
+    }));
+
+    res.status(200).json(formattedOrders);
   } catch (err) {
     console.error("❌ Failed to fetch received orders:", err);
     res.status(500).json({ error: "Server error fetching received orders" });
   }
 });
 
-
-/** ---------------------------
- *  Update Order Status (Accept, Reject, Complete)
- *  PUT /api/orders/:id/status
- * ---------------------------- */
+/**
+ * Update Order Status (Only Freelancer Can Mark as Completed)
+ * PUT /api/orders/:id/status
+ */
 router.put("/:id/status", verifyToken, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const validStatuses = ["pending", "accepted", "rejected", "completed"];
+  const validStatuses = ["pending", "completed"];
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ message: "Invalid status value." });
   }
@@ -102,17 +108,29 @@ router.put("/:id/status", verifyToken, async (req, res) => {
     const order = await Order.findById(id);
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: "Order not found." });
     }
 
+    //  Only the freelancer can update order status
     if (order.sellerId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized to update this order." });
+      return res
+        .status(403)
+        .json({ message: "Only the seller can update this order." });
+    }
+
+    if (order.status === status) {
+      return res
+        .status(200)
+        .json({ message: `Order is already '${status}'.` });
     }
 
     order.status = status;
     const updatedOrder = await order.save();
 
-    res.json(updatedOrder);
+    res.status(200).json({
+      message: `Order status updated to '${status}'.`,
+      order: updatedOrder,
+    });
   } catch (err) {
     console.error("❌ Failed to update order status:", err);
     res.status(500).json({ error: "Server error updating order status" });

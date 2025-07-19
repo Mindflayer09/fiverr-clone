@@ -11,27 +11,26 @@ const FreelancerDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  const fetchDashboardData = async () => {
-    if (!user?._id) return;
+    const fetchDashboardData = async () => {
+      if (!user?._id) return;
 
-    try {
-      // Fetch freelancer's gigs
-      const gigsRes = await axios.get(`/api/gigs/user/${user._id}`);
-      setGigs(gigsRes.data);
+      try {
+        // Fetch freelancer's gigs (optional display)
+        const gigsRes = await axios.get(`/api/gigs/user/${user._id}`);
+        setGigs(gigsRes.data);
 
-      //  Correct route for received orders
-      const receivedRes = await axios.get(`/api/orders/received/${user._id}`);
-      setReceivedOrders(receivedRes.data);
+        // Fetch received orders and populate gig + client info
+        const receivedRes = await axios.get(`/api/orders/received/${user._id}`);
+        setReceivedOrders(receivedRes.data || []);
+      } catch (err) {
+        console.error("❌ Dashboard load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    } catch (err) {
-      console.error("❌ Dashboard load error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchDashboardData();
-}, [user]);
+    fetchDashboardData();
+  }, [user]);
 
   const handleStatusChange = (orderId, newStatus) => {
     setReceivedOrders((prev) =>
@@ -41,63 +40,51 @@ const FreelancerDashboard = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-10 text-gray-500 text-lg">Loading dashboard...</div>
-      </DashboardLayout>
-    );
-  }
+  const handleApprove = async (orderId) => {
+    try {
+      await axios.put(`/api/orders/${orderId}/status`, {
+        status: "completed",
+      });
+      handleStatusChange(orderId, "completed");
+    } catch (err) {
+      console.error("❌ Failed to approve order:", err);
+    }
+  };
 
   return (
     <DashboardLayout>
+      {/* Header */}
       <div className="pb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">🧑‍💻 Freelancer Dashboard</h1>
-        <p className="text-gray-600 mb-8 text-lg">
-          Welcome back, <span className="font-semibold">{user?.username}</span> 👋
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">🧑‍💻</span>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Freelancer Dashboard
+            </h1>
+          </div>
+          <p className="text-gray-600 text-lg mt-1">
+            Welcome back,{" "}
+            <span className="font-semibold lowercase">{user?.username}</span> 👋
+          </p>
+           <p className="text-center font-semibold py-10 mt-24 text-gray-500 text-lg">
+            Your Dashboard content will be displayed here..
         </p>
-
-        {/* Gigs Section */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">🎨 Your Gigs</h2>
-          {gigs.length === 0 ? (
-            <p className="text-gray-500 italic">You haven’t created any gigs yet.</p>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {gigs.map((gig) => (
-                <li
-                  key={gig._id}
-                  className="p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition border border-gray-200"
-                >
-                  <h3 className="text-lg font-semibold text-gray-900">{gig.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {gig.description?.slice(0, 80)}...
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {/* 📥 Orders Placed by Clients Section */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">📥 Orders Placed by Clients</h2>
-          {receivedOrders.length === 0 ? (
-            <p className="text-gray-500 italic">No one has ordered your gigs yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {receivedOrders.map((order) => (
-                <OrderCard
-                  key={order._id}
-                  order={order}
-                  isReceived={true}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        </div>
       </div>
+
+      {/* Orders Section */}
+      <section className="mt-10">
+          <div className="space-y-4">
+            {receivedOrders.map((order) => (
+              <OrderCard
+                key={order._id}
+                order={order}
+                isReceived={true}
+                onStatusChange={handleStatusChange}
+              />
+            ))}
+          </div>
+      </section>
     </DashboardLayout>
   );
 };
