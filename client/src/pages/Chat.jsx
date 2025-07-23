@@ -1,174 +1,146 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import axios from "axios";
-import moment from "moment";
+import { useAuth } from "../context/AuthContext";
 
-// ✅ Connect to backend's socket.io
-export const socket = io("http://localhost:5000");
+const socket = io("http://localhost:5000");
 
-const Chat = ({ receiverId }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
-  const userId = user?._id;
-
+const Chat = () => {
+  const { receiverId } = useParams();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
-  const [receiver, setReceiver] = useState(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const chatBoxRef = useRef(null);
+  const [messageText, setMessageText] = useState("");
+  const [chatList, setChatList] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState(null);
 
-  // ✅ Auto-scroll to bottom on new messages
+  // Load chat room or create
   useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-    }
-  }, [messages]);
+    if (!user || !receiverId) return;
 
-  // ✅ Socket setup
-  useEffect(() => {
-    if (!userId) return;
-
-    socket.emit("join", userId);
-
-    socket.on("connect", () => {
-      console.log("✅ Connected to Socket.io server");
-    });
-
-    socket.on("connect_error", (err) => {
-      console.error("❌ Socket connection failed:", err.message);
-    });
-
-    socket.on("receiveMessage", (msg) => {
-      if (msg.receiverId === userId) {
-        setMessages((prev) => [...prev, msg]);
+    const fetchOrCreateRoom = async () => {
+      try {
+        const { data } = await axios.post("/api/chatrooms/initiate", {
+          participants: [user._id, receiverId],
+        });
+        setCurrentRoom(data._id);
+        socket.emit("joinRoom", data._id);
+      } catch (error) {
+        console.error("Room error:", error);
       }
-    });
+    };
 
-    socket.on("typing", () => {
-      setIsTyping(true);
-      setTimeout(() => setIsTyping(false), 1000);
+    fetchOrCreateRoom();
+  }, [receiverId, user]);
+
+  // Load existing messages
+  useEffect(() => {
+    if (!currentRoom) return;
+
+    const fetchMessages = async () => {
+      try {
+        const { data } = await axios.get(`/api/messages/${currentRoom}`);
+        setMessages(data);
+      } catch (error) {
+        console.error("Fetch messages failed:", error);
+      }
+    };
+
+    fetchMessages();
+  }, [currentRoom]);
+
+  // Real-time message listener
+  useEffect(() => {
+    socket.on("newMessage", (msg) => {
+      setMessages((prev) => [...prev, msg]);
     });
 
     return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
-      socket.off("connect");
-      socket.off("connect_error");
+      socket.off("newMessage");
     };
-  }, [userId]);
+  }, []);
 
-  // ✅ Fetch chat messages and receiver info
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/messages/${userId}/${receiverId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setMessages(res.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch messages:", err.message);
-      }
-    };
-
-    const fetchReceiver = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/auth/user/${receiverId}`);
-        setReceiver(res.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch receiver info:", err.message);
-      }
-    };
-
-    if (userId && receiverId) {
-      fetchMessages();
-      fetchReceiver();
-    }
-  }, [receiverId, userId, token]);
-
-  // ✅ Send message
-  const handleSend = async () => {
-    if (!text.trim()) return;
-
-    const message = {
-      senderId: userId,
-      receiverId,
-      content: text.trim(),
-    };
-
-    socket.emit("sendMessage", message);
+  // Send message
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
 
     try {
-      const res = await axios.post("http://localhost:5000/api/messages", message, {
-        headers: { Authorization: `Bearer ${token}` },
+      const { data } = await axios.post("/api/messages", {
+        roomId: currentRoom,
+        senderId: user._id,
+        text: messageText,
       });
-      setMessages((prev) => [...prev, res.data]);
-      setText("");
-    } catch (err) {
-      console.error("❌ Message send failed:", err.message);
-    }
-  };
 
-  // ✅ Emit typing signal
-  const handleTyping = () => {
-    socket.emit("typing", { receiverId });
+      socket.emit("sendMessage", data);
+      setMessageText("");
+    } catch (error) {
+      console.error("Message send failed:", error);
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-10 min-h-[85vh] flex flex-col bg-white shadow rounded-xl">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
-        💬 Chat with {receiver?.username || "User"}
-      </h2>
+    <div className="flex h-[calc(100vh-64px)]">
+      {/* Chat List Sidebar */}
+      <aside className="hidden md:flex w-1/4 flex-col bg-gray-100 border-r overflow-y-auto">
+        <h2 className="text-xl font-semibold p-4 border-b">Chats</h2>
+        {chatList.length === 0 ? (
+          <p className="p-4 text-gray-500">No chats yet.</p>
+        ) : (
+          chatList.map((chat) => (
+            <div key={chat._id} className="p-4 hover:bg-gray-200 cursor-pointer">
+              {chat.name || "Chat"}
+            </div>
+          ))
+        )}
+      </aside>
 
-      {/* Messages Container */}
-      <div
-        ref={chatBoxRef}
-        className="flex-1 overflow-y-auto p-4 border rounded-md bg-gray-100 space-y-4 max-h-[60vh]"
-      >
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`flex flex-col max-w-[70%] px-4 py-2 rounded-lg text-sm ${
-              msg.senderId === userId
-                ? "bg-blue-600 text-white self-end ml-auto text-right"
-                : "bg-gray-300 text-gray-900 self-start"
-            }`}
-          >
-            <span className="font-semibold text-xs mb-1">
-              {msg.senderId === userId ? "You" : receiver?.username || "User"}
-            </span>
-            <span>{msg.content}</span>
-            <span className="text-xs mt-1 text-gray-700">
-              {moment(msg.createdAt).format("hh:mm A")}
-            </span>
+      {/* Main Chat Window */}
+      <section className="flex-1 flex flex-col justify-between">
+        {!receiverId ? (
+          <div className="h-full flex items-center justify-center text-gray-500 text-lg">
+            Select a chat to start messaging
           </div>
-        ))}
-      </div>
+        ) : (
+          <>
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {messages.map((msg) => (
+                <div
+                  key={msg._id}
+                  className={`max-w-xs md:max-w-sm px-4 py-2 rounded-xl ${
+                    msg.senderId === user._id
+                      ? "bg-green-100 ml-auto"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              ))}
+            </div>
 
-      {/* Typing indicator */}
-      {isTyping && (
-        <div className="text-sm italic text-gray-500 mt-2">Typing...</div>
-      )}
-
-      {/* Input Box */}
-      <div className="mt-4 flex items-center gap-2">
-        <input
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            handleTyping();
-          }}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Type your message..."
-          className="flex-1 border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleSend}
-          className="bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition duration-200"
-        >
-          Send
-        </button>
-      </div>
+            {/* Input Area */}
+            <form
+              onSubmit={sendMessage}
+              className="flex items-center border-t p-2 gap-2 bg-white"
+            >
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition"
+              >
+                Send
+              </button>
+            </form>
+          </>
+        )}
+      </section>
     </div>
   );
 };

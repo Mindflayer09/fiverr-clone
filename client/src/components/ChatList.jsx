@@ -1,109 +1,58 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
-import { io } from "socket.io-client";
-import moment from "moment";
+// client/src/pages/ChatList.jsx
 
-const socket = io("http://localhost:5000");
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const ChatList = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const [contacts, setContacts] = useState([]);
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const { user } = useAuth();
+  const [chatUsers, setChatUsers] = useState([]);
+  const navigate = useNavigate();
 
-  // Socket Join + Online Status
   useEffect(() => {
     if (!user?._id) return;
-    socket.emit("join", user._id);
-    socket.on("onlineUsers", (users) => setOnlineUsers(users));
-    return () => socket.off("onlineUsers");
-  }, []);
 
-  // Fetch Orders and Chat Contacts
-  useEffect(() => {
     const fetchChatUsers = async () => {
-      const res = await axios.get(`http://localhost:5000/api/orders/user/${user._id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-
-      const partnerIds = res.data.map((order) =>
-        user.role === "client" ? order.sellerId : order.buyerId
-      );
-
-      const uniqueIds = [...new Set(partnerIds.map((u) => u._id))];
-
-      const chatList = await Promise.all(
-        uniqueIds.map(async (id) => {
-          const userRes = await axios.get(`http://localhost:5000/api/auth/user/${id}`);
-          const msgRes = await axios.get(
-            `http://localhost:5000/api/messages/${user._id}/${id}`,
-            {
-              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            }
-          );
-          const lastMsg = msgRes.data[msgRes.data.length - 1];
-          return {
-            ...userRes.data,
-            lastMessage: lastMsg?.content || "No messages yet",
-            lastTime: lastMsg?.createdAt || null,
-          };
-        })
-      );
-
-      setContacts(chatList);
+      try {
+        const res = await axios.get(`/api/chat/users/${user._id}`);
+        setChatUsers(res.data);
+      } catch (err) {
+        console.error("Failed to fetch chat users", err);
+      }
     };
 
     fetchChatUsers();
-  }, []);
+  }, [user]);
+
+  const handleClick = (receiverId) => {
+    navigate(`/chat/${receiverId}`);
+  };
 
   return (
-    <div className="w-full sm:w-80 h-screen bg-white border-r shadow-md p-4 overflow-y-auto">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800 border-b pb-2">💬 Chats</h2>
+    <div className="max-w-3xl mx-auto mt-6 bg-white p-6 rounded-lg shadow">
+      <h2 className="text-2xl font-bold mb-4">Your Chats</h2>
 
-      {contacts.map((c) => (
-        <Link
-          key={c._id}
-          to={`/chat/${c._id}`}
-          className="flex items-center justify-between gap-3 p-3 mb-3 rounded-lg hover:bg-gray-100 transition"
-        >
-          <div className="flex items-center gap-3 flex-1">
-            {/* Avatar or Initial */}
-            <div className="relative w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-white text-sm font-semibold uppercase">
-              {c?.profilePic ? (
-                <img
-                  src={c.profilePic}
-                  alt={c.username}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                c.username?.charAt(0)
-              )}
-              <span
-                className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white ${
-                  onlineUsers.includes(c._id) ? "bg-green-500" : "bg-gray-400"
-                }`}
+      {chatUsers.length === 0 ? (
+        <p className="text-gray-500">You have no chats yet.</p>
+      ) : (
+        <ul className="space-y-3">
+          {chatUsers.map((u) => (
+            <li
+              key={u._id}
+              onClick={() => handleClick(u._id)}
+              className="flex items-center gap-4 p-3 hover:bg-gray-100 cursor-pointer rounded-lg border"
+            >
+              <img
+                src={u.profilePicture || "/default-avatar.png"}
+                alt={u.username}
+                className="w-10 h-10 rounded-full object-cover"
               />
-            </div>
-
-            {/* Info */}
-            <div className="flex flex-col flex-1">
-              <span className="font-medium text-gray-800 truncate">{c.username}</span>
-              <span className="text-sm text-gray-600 truncate">
-                {c.lastMessage.length > 30
-                  ? c.lastMessage.slice(0, 30) + "..."
-                  : c.lastMessage}
-              </span>
-            </div>
-          </div>
-
-          {/* Time */}
-          {c.lastTime && (
-            <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
-              {moment(c.lastTime).fromNow()}
-            </span>
-          )}
-        </Link>
-      ))}
+              <span className="font-medium">{u.username}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

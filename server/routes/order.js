@@ -137,4 +137,24 @@ router.put("/:id/status", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/all-users-involved/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const orders = await Order.find({
+      $or: [{ buyerId: userId }, { sellerId: userId }],
+    });
+
+    const users = new Set();
+    orders.forEach((o) => {
+      if (o.buyerId.toString() !== userId) users.add(o.buyerId.toString());
+      if (o.sellerId.toString() !== userId) users.add(o.sellerId.toString());
+    });
+
+    const result = await User.find({ _id: { $in: Array.from(users) } }).select("username _id");
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching users involved in orders" });
+  }
+});
+
 export default router;

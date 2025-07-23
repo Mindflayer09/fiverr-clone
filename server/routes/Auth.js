@@ -18,6 +18,18 @@ router.get("/user/:id", async (req, res) => {
   }
 });
 
+// Get all users except the current user (for chat contact list)
+router.get("/all/:currentUserId", async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.params.currentUserId } }).select("username profilePicture role");
+    res.status(200).json(users);
+  } catch (err) {
+    console.error("Fetch users error:", err);
+    res.status(500).json({ msg: "Error fetching users" });
+  }
+});
+
+
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
