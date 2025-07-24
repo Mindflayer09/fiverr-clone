@@ -15,11 +15,11 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
     ? format(new Date(order.createdAt), "dd/MM/yyyy")
     : "Unknown Date";
 
-  const handleMessageClient = () => {
-    if (order?.client?._id) {
-      navigate(`/chat/${order.client._id}`);
+  const handleMessage = () => {
+    if (order?._id) {
+      navigate(`/orders/${order._id}/chat`);
     } else {
-      alert("Client information not found.");
+      alert("Order ID not found.");
     }
   };
 
@@ -38,6 +38,7 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
     }
   };
 
+  console.log("Order:", order);
   return (
     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all">
       {/* Header Row */}
@@ -48,11 +49,15 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
             🎯 {order?.gigId?.title || "[Deleted Gig]"}
           </p>
 
-          {/* Client Info (Freelancer View) */}
-          {isReceived && order?.client && (
+          {/* User Info (Client or Freelancer) */}
+          {order && (
             <p className="text-sm text-gray-600 flex items-center gap-1">
               <FaUser className="text-gray-400" />
-              <span>Client: {order.client.username}</span>
+              <span>
+                {isReceived
+                  ? `Client: ${order.client?.username || "Unknown"}`
+                  : `Freelancer: ${order.freelancer?.username || "Unknown"}`}
+              </span>
             </p>
           )}
 
@@ -74,27 +79,29 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
       </div>
 
       {/* Action Buttons */}
-      {isReceived && (
-        <div className="flex flex-wrap gap-3 mt-4">
-          {order?.status === "pending" && (
-            <button
-              className="px-4 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-medium transition"
-              onClick={handleApprove}
-            >
-              Approve
-            </button>
-          )}
-
+      <div className="flex flex-wrap gap-3 mt-4">
+        {isReceived && order?.status === "pending" && (
           <button
-            onClick={handleMessageClient}
+            className="px-4 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 text-sm font-medium transition"
+            onClick={handleApprove}
+          >
+            Approve
+          </button>
+        )}
+        {isReceived && (
+          <button
+            onClick={handleMessage}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition"
           >
-            <FaComments /> Message Client
+            <FaComments />
+            Message
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
 export default OrderCard;
+
+

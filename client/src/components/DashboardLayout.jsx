@@ -40,7 +40,6 @@ const DashboardLayout = ({ children }) => {
           )}
 
           <Link to="/orders" className={linkClass("/orders")}>📦 Orders</Link>
-          <Link to="/chat/0" className={linkClass("/chat")}>💬 Chat</Link>
         </nav>
       </aside>
 

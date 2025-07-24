@@ -1,13 +1,12 @@
 import express from "express";
 import Order from "../models/Order.js";
+import User from "../models/User.js";
 import { verifyToken } from "../middleware/verifyToken.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-/**
- * Place a New Order
- * POST /api/orders
- */
+// Place a New Order
 router.post("/", verifyToken, async (req, res) => {
   try {
     const buyerId = req.user.id;
@@ -19,141 +18,116 @@ router.post("/", verifyToken, async (req, res) => {
 
     const newOrder = new Order({ buyerId, sellerId, gigId });
     const savedOrder = await newOrder.save();
-
+    console.log("✅ New order placed:", savedOrder._id);
     res.status(201).json(savedOrder);
   } catch (err) {
-    console.error("❌ Order creation failed:", err);
-    res.status(500).json({
-      message: "Server error while placing order",
-      error: err.message,
-    });
+    console.error("❌ Order creation failed:", err.message);
+    res.status(500).json({ message: "Server error while placing order" });
   }
 });
 
-/**
- * Get Orders for Logged-in User (Client or Freelancer)
- * GET /api/orders/user/:id
- */
+// Get Orders for Logged-in User (Client or Freelancer)
 router.get("/user/:id", verifyToken, async (req, res) => {
+
+  const userId = req.params.id;
+  console.log("Authenticated User:", req.user);
+
+  if (userId !== req.user.id) {
+    return res.status(403).json({ message: "Unauthorized access." });
+  }
+
   try {
-    const userId = req.params.id;
-
-    if (req.user.id !== userId) {
-      return res.status(403).json({ message: "Unauthorized access." });
-    }
-
-    const query =
-      req.user.role === "freelancer"
-        ? { sellerId: userId }
-        : { buyerId: userId };
+    const query = req.user.role === "freelancer"
+      ? { sellerId: userId } 
+      : { buyerId: userId };
 
     const orders = await Order.find(query)
       .populate("gigId", "title images")
-      .populate("buyerId", "username")
-      .populate("sellerId", "username")
+      .populate("buyerId", "username profilePic")
+      .populate("sellerId", "username profilePic")
       .sort({ createdAt: -1 });
 
     res.status(200).json(orders);
   } catch (err) {
-    console.error("❌ Error fetching user orders:", err);
+    console.error("❌ Failed to fetch user orders:", err.message);
     res.status(500).json({ message: "Server error fetching orders" });
   }
 });
 
-/**
- * Get Orders Received by Freelancer
- * GET /api/orders/received/:freelancerId
- */
-router.get("/received/:freelancerId", verifyToken, async (req, res) => {
+// Get Orders Received by Freelancer
+router.get("/received/:id", verifyToken, async (req, res) => { 
   try {
-    const freelancerId = req.params.freelancerId;
-
-    if (req.user.id !== freelancerId) {
-      return res.status(403).json({ message: "Unauthorized access." });
+    const freelancerId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(freelancerId)) {
+      return res.status(400).json({ message: "Invalid freelancer ID" });
     }
-
-    const receivedOrders = await Order.find({ sellerId: freelancerId })
-      .populate("gigId", "title images")
-      .populate("buyerId", "username profilePic") 
-      .sort({ createdAt: -1 });
-
-    // Transform the response to match frontend expectations
-    const formattedOrders = receivedOrders.map((order) => ({
-      ...order._doc,
-      gig: order.gigId,
-      buyer: order.buyerId,
-    }));
-
-    res.status(200).json(formattedOrders);
+    const orders = await Order.find({ sellerId: freelancerId })
+      .populate("gigId", "title")
+      .populate("buyerId", "username");
+    console.log(`✅ Fetched orders for freelancer ${freelancerId}:`, orders);
+    res.status(200).json(orders);
   } catch (err) {
-    console.error("❌ Failed to fetch received orders:", err);
-    res.status(500).json({ error: "Server error fetching received orders" });
+    console.error("Error fetching received orders:", err);
+    res.status(500).json({ message: "Failed to fetch received orders" });
   }
 });
 
-/**
- * Update Order Status (Only Freelancer Can Mark as Completed)
- * PUT /api/orders/:id/status
- */
+// Update Order Status (Only Seller Can Update)
 router.put("/:id/status", verifyToken, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-
   const validStatuses = ["pending", "completed"];
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ message: "Invalid status value." });
   }
-
   try {
     const order = await Order.findById(id);
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found." });
-    }
-
-    //  Only the freelancer can update order status
+    if (!order) return res.status(404).json({ message: "Order not found." });
     if (order.sellerId.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({ message: "Only the seller can update this order." });
+      return res.status(403).json({ message: "Only seller can update status." });
     }
-
     if (order.status === status) {
-      return res
-        .status(200)
-        .json({ message: `Order is already '${status}'.` });
+      return res.status(200).json({ message: `Order already '${status}'.` });
     }
-
     order.status = status;
     const updatedOrder = await order.save();
-
+    console.log("✅ Order status updated:", updatedOrder._id);
     res.status(200).json({
       message: `Order status updated to '${status}'.`,
       order: updatedOrder,
     });
   } catch (err) {
-    console.error("❌ Failed to update order status:", err);
-    res.status(500).json({ error: "Server error updating order status" });
+    console.error("❌ Failed to update order:", err.message);
+    res.status(500).json({ message: "Server error updating order" });
   }
 });
 
-router.get("/all-users-involved/:userId", async (req, res) => {
+// Get All Users Involved in Any Orders
+router.get("/all-users-involved/:userId", verifyToken, async (req, res) => {
   const userId = req.params.userId;
+  if (userId !== req.user.id) {
+    return res.status(403).json({ message: "Unauthorized access." });
+  }
   try {
     const orders = await Order.find({
       $or: [{ buyerId: userId }, { sellerId: userId }],
     });
-
-    const users = new Set();
-    orders.forEach((o) => {
-      if (o.buyerId.toString() !== userId) users.add(o.buyerId.toString());
-      if (o.sellerId.toString() !== userId) users.add(o.sellerId.toString());
+    const userIds = new Set();
+    orders.forEach((order) => {
+      if (order.buyerId.toString() !== userId) {
+        userIds.add(order.buyerId.toString());
+      }
+      if (order.sellerId.toString() !== userId) {
+        userIds.add(order.sellerId.toString());
+      }
     });
-
-    const result = await User.find({ _id: { $in: Array.from(users) } }).select("username _id");
-    res.json(result);
+    const users = await User.find({
+      _id: { $in: Array.from(userIds) },
+    }).select("_id username profilePic");
+    res.status(200).json(users);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching users involved in orders" });
+    console.error("❌ Failed to fetch involved users:", err.message);
+    res.status(500).json({ message: "Server error fetching involved users" });
   }
 });
 

@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom"; 
+import { FaComments } from "react-icons/fa"; 
 
 const BASE_URL = "http://localhost:5000";
 
 const Orders = () => {
   const { user, token, loading } = useAuth();
   const [orders, setOrders] = useState([]);
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -60,12 +63,17 @@ const Orders = () => {
     }
   };
 
+  // This is the function for the new "Message" button
+  const handleMessage = (orderId) => {
+    navigate(`/orders/${orderId}/chat`);
+  };
+
   if (loading) {
     return <p className="text-center text-gray-500 mt-10">Loading orders...</p>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="max-w-4xl mx-auto p-6">
       <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
         📦 {user?.role === "freelancer" ? "Orders Received" : "Orders Placed"}
       </h2>
@@ -120,6 +128,15 @@ const Orders = () => {
                       Approve
                     </button>
                   )}
+
+                  {/* New: The Message button */}
+                  <button
+                    onClick={() => handleMessage(order._id)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition mt-2"
+                  >
+                    <FaComments />
+                    Message
+                  </button>
                 </div>
               </div>
             </div>

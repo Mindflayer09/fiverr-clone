@@ -2,11 +2,23 @@ import mongoose from "mongoose";
 
 const chatRoomSchema = new mongoose.Schema(
   {
-    name: { type: String }, 
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    isGroup: { type: Boolean, default: false },
+    orderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+      required: true,
+      unique: true,
+    },
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );
 
-export default mongoose.model("ChatRoom", chatRoomSchema);
+const ChatRoom = mongoose.model("ChatRoom", chatRoomSchema);
+
+export default ChatRoom;

@@ -51,7 +51,7 @@ router.post("/register", async (req, res) => {
       msg: `Welcome, ${newUser.username}!`,
       token,
       user: {
-        _id: newUser._id,
+        id: newUser._id, // ✅ Corrected from _id to id
         username: newUser.username,
         email: newUser.email,
         role: newUser.role,
@@ -80,7 +80,7 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, username: user.username, role: user.role },
+      user: { id: user._id, username: user.username, role: user.role }, // ✅ Corrected from _id to id
     });
   } catch (err) {
     console.error("Login error:", err);

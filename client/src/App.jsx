@@ -1,5 +1,3 @@
-// client/src/App.jsx
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,8 +13,7 @@ import AddGig from "./pages/AddGig";
 import Orders from "./pages/Orders";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
-import ChatWrapper from "./pages/ChatWrapper";
-import ChatList from "./components/ChatList";
+import ChatRoom from "./pages/ChatRoom";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
@@ -37,10 +34,10 @@ function App() {
           <Route path="/add-gig" element={<AddGig />} />
           <Route path="/my-gigs" element={<MyGigs />} />
           <Route path="/orders" element={<Orders />} />
-
-          {/* ✅ Chat */}
-          <Route path="/chat" element={<ChatList />} />
-          <Route path="/chat/:receiverId" element={<ChatWrapper />} />
+          <Route path="/dashboard/freelancer" element={<FreelancerDashboard />} />
+          <Route path="/dashboard/freelancer/gigs" element={<MyGigs />} />
+          <Route path="/dashboard/freelancer/orders" element={<Orders />} />
+          <Route path="/dashboard/freelancer/add-gig" element={<AddGig />} />
 
           {/* ✅ Role-based redirect */}
           <Route
@@ -58,7 +55,7 @@ function App() {
             }
           />
 
-          {/* ✅ Client/Freelancer Dashboards */}
+          {/* ✅ Dashboards */}
           <Route
             path="/dashboard/client"
             element={
@@ -72,6 +69,16 @@ function App() {
             element={
               <ProtectedRoute requiredRole="freelancer">
                 <FreelancerDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ Chat route (separate protected page) */}
+          <Route
+            path="/orders/:orderId/chat"
+            element={
+              <ProtectedRoute>
+                <ChatRoom />
               </ProtectedRoute>
             }
           />
