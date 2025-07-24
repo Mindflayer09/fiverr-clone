@@ -19,21 +19,21 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Environment Check
+// Environment Check
 const REQUIRED_ENV_VARS = ["MONGO_URI", "JWT_SECRET", "PORT"];
 for (const key of REQUIRED_ENV_VARS) {
-  if (!process.env[key]) {
-    console.error(`❌ Missing required environment variable: ${key}`);
-    process.exit(1);
-  }
+  if (!process.env[key]) {
+    console.error(`❌ Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
 }
 
-// ✅ Middlewares
+// Middlewares
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
 
-// ✅ Routes
+// Routes
 app.use("/api/auth", authRoutes);
 console.log("🔗 Mounted: /api/auth");
 
@@ -53,54 +53,54 @@ app.use("/api/chat", chatRoutes);
 console.log("🔗 Mounted: /api/chat");
 
 app.get("/", (req, res) => {
-  res.send("✅ API is running...");
+  res.send("✅ API is running...");
 });
 
-// ✅ Socket.io Setup
+// Socket.io Setup
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
 
 io.on("connection", (socket) => {
-  console.log("✅ User connected:", socket.id);
+  console.log("✅ User connected:", socket.id);
 
-  socket.on("joinRoom", (roomId) => {
-    socket.join(roomId);
-    console.log(`📦 User joined room: ${roomId}`);
-  });
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+    console.log(`📦 User joined room: ${roomId}`);
+  });
 
-  socket.on("sendMessage", (message) => {
-    const roomId = message.room;
-    io.to(roomId).emit("receiveMessage", message);
-    console.log(`✉️ Message sent to room ${roomId}`);
-  });
+  socket.on("sendMessage", (message) => {
+    const roomId = message.room; 
+    io.to(roomId).emit("receiveMessage", message);
+    console.log(`✉️ Message sent to room ${roomId}`);
+  });
 
-  socket.on("disconnect", () => {
-    console.log("❌ User disconnected:", socket.id);
-  });
+  socket.on("disconnect", () => {
+    console.log("❌ User disconnected:", socket.id);
+  });
 });
 
-// ✅ MongoDB Connect + Server Start
+// MongoDB Connect + Server Start
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then((conn) => {
-    console.log("✅ MongoDB connected:");
-    console.log(`   ➤ Host: ${conn.connection.host}`);
-    console.log(`   ➤ DB: ${conn.connection.name}`);
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then((conn) => {
+    console.log("✅ MongoDB connected:");
+    console.log(`   ➤ Host: ${conn.connection.host}`);
+    console.log(`   ➤ DB: ${conn.connection.name}`);
 
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
-  });
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1);
+  });

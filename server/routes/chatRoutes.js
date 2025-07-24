@@ -1,5 +1,5 @@
 import express from "express";
-import ChatRoom from "../models/ChatRoom.js";
+import ChatRoom from "../models/ChatRoom.js"; // Assuming this is your ChatRoom model
 import Message from "../models/Message.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -17,6 +17,7 @@ router.get("/room/:orderId", verifyToken, async (req, res) => {
       room = await ChatRoom.create({
         orderId,
         participants: [userId],
+        archivedBy: [], 
       });
       console.log(`✅ New chat room created for order ${orderId} with participant ${userId}`);
     } else if (!room.participants.includes(userId)) {
@@ -37,7 +38,15 @@ router.get("/room/:orderId", verifyToken, async (req, res) => {
 // Get messages by room ID
 router.get("/messages/:roomId", verifyToken, async (req, res) => {
   try {
-    const messages = await Message.find({ room: req.params.roomId }) // ✅ Corrected from chatRoom to room
+    const { roomId } = req.params;
+    const userId = req.user.id; 
+
+    const chatRoom = await ChatRoom.findById(roomId); 
+    if (chatRoom && chatRoom.archivedBy.includes(userId)) {
+      return res.status(200).json([]);
+    }
+
+    const messages = await Message.find({ room: roomId })
       .populate("sender", "username profilePic")
       .sort({ createdAt: 1 });
 
@@ -55,7 +64,7 @@ router.post("/message", verifyToken, async (req, res) => {
 
   try {
     const message = await Message.create({
-      room: roomId, // ✅ Corrected from chatRoom to room
+      room: roomId,
       sender: senderId,
       text,
     });
@@ -68,7 +77,7 @@ router.post("/message", verifyToken, async (req, res) => {
   }
 });
 
-// ✅ NEW: DELETE all messages for a specific room
+// ✅ RE-ADDED: DELETE all messages for a specific room
 router.delete("/messages/:roomId", verifyToken, async (req, res) => {
   try {
     const { roomId } = req.params;
@@ -80,6 +89,29 @@ router.delete("/messages/:roomId", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("❌ Error deleting chat history:", err.message);
     res.status(500).json({ message: "Server error deleting chat history." });
+  }
+});
+
+router.put("/archive/:orderId", verifyToken, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+
+    const chatRoom = await ChatRoom.findOneAndUpdate(
+      { orderId: orderId },
+      { $addToSet: { archivedBy: userId } },
+      { new: true }
+    );
+
+    if (!chatRoom) {
+      return res.status(404).json({ message: "Chat room not found." });
+    }
+
+    console.log(`✅ Chat room ${orderId} archived for user ${userId}.`);
+    res.status(200).json({ message: "Chat history archived successfully." });
+  } catch (err) {
+    console.error("❌ Error archiving chat history:", err.message);
+    res.status(500).json({ message: "Server error archiving chat history." });
   }
 });
 

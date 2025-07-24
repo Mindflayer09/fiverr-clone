@@ -1,24 +1,26 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const chatRoomSchema = new mongoose.Schema(
+const ChatRoomSchema = new mongoose.Schema(
   {
     orderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Order",
+      type: String,
       required: true,
       unique: true,
     },
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+        ref: 'User',
+      },
+    ],
+    archivedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
       },
     ],
   },
   { timestamps: true }
 );
 
-const ChatRoom = mongoose.model("ChatRoom", chatRoomSchema);
-
-export default ChatRoom;
+export default mongoose.model('ChatRoom', ChatRoomSchema);

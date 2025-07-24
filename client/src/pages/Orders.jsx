@@ -3,6 +3,7 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom"; 
 import { FaComments } from "react-icons/fa"; 
+import { toast } from 'react-toastify';
 
 const BASE_URL = "http://localhost:5000";
 
@@ -31,6 +32,7 @@ const Orders = () => {
   }, [user, token]);
 
   const handleStatusChange = async (orderId, newStatus) => {
+    console.log(`Attempting to change order ${orderId} status to ${newStatus}`);
     try {
       const res = await axios.put(
         `${BASE_URL}/api/orders/${orderId}/status`,
@@ -39,16 +41,20 @@ const Orders = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      const updatedOrder = res.data.order;
+      
+      console.log("Server responded with:", res.data);
+      console.log("Updated order for state:", updatedOrder);
 
-      // Update order status in local state
-      const updatedOrder = res.data;
       setOrders((prev) =>
         prev.map((order) =>
           order._id === orderId ? updatedOrder : order
         )
       );
+
     } catch (err) {
       console.error("❌ Status update failed:", err.response?.data || err.message);
+      toast.error("Failed to update order status.");
     }
   };
 
@@ -63,7 +69,6 @@ const Orders = () => {
     }
   };
 
-  // This is the function for the new "Message" button
   const handleMessage = (orderId) => {
     navigate(`/orders/${orderId}/chat`);
   };
@@ -88,20 +93,15 @@ const Orders = () => {
               className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition"
             >
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                {/* Order Details */}
                 <div>
                   <p className="text-lg font-semibold text-gray-800 mb-1">
                     🎯 Gig:{" "}
-                    {order.gigId?.title || (
-                      <span className="text-red-500 italic">[Deleted Gig]</span>
-                    )}
+                    {order.gigId?.title}
                   </p>
                   <p className="text-sm text-gray-500">
                     🗓️ Ordered On:{" "}
                     {new Date(order.createdAt).toLocaleDateString()}
                   </p>
-
-                  {/* Show client name only to freelancers */}
                   {user?.role === "freelancer" && order.buyerId?.username && (
                     <p className="text-sm text-gray-500 mt-1">
                       👤 Client: {order.buyerId.username}
@@ -109,7 +109,6 @@ const Orders = () => {
                   )}
                 </div>
 
-                {/* Status + Action */}
                 <div className="flex flex-col md:items-end">
                   <span
                     className={`text-sm font-medium px-3 py-1 rounded-full mb-2 inline-block w-fit ${getStatusStyle(
@@ -119,7 +118,6 @@ const Orders = () => {
                     {order?.status ? order.status.toUpperCase() : "UNKNOWN"}
                   </span>
 
-                  {/* Show Approve button only to freelancer on PENDING orders */}
                   {user?.role === "freelancer" && order?.status?.toLowerCase() === "pending" && (
                     <button
                       className="px-4 py-2 rounded-full text-white bg-green-600 hover:bg-green-700 text-sm font-medium transition"
@@ -129,7 +127,6 @@ const Orders = () => {
                     </button>
                   )}
 
-                  {/* New: The Message button */}
                   <button
                     onClick={() => handleMessage(order._id)}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition mt-2"

@@ -77,25 +77,31 @@ router.put("/:id/status", verifyToken, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   const validStatuses = ["pending", "completed"];
+
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ message: "Invalid status value." });
   }
+
   try {
-    const order = await Order.findById(id);
-    if (!order) return res.status(404).json({ message: "Order not found." });
-    if (order.sellerId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Only seller can update status." });
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: id, sellerId: req.user.id },
+      { $set: { status: status } },
+      { new: true }
+    )
+    .populate("gigId", "title images")
+    .populate("buyerId", "username profilePic")
+    .populate("sellerId", "username profilePic");
+    
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found or unauthorized." });
     }
-    if (order.status === status) {
-      return res.status(200).json({ message: `Order already '${status}'.` });
-    }
-    order.status = status;
-    const updatedOrder = await order.save();
+
     console.log("✅ Order status updated:", updatedOrder._id);
     res.status(200).json({
       message: `Order status updated to '${status}'.`,
       order: updatedOrder,
     });
+
   } catch (err) {
     console.error("❌ Failed to update order:", err.message);
     res.status(500).json({ message: "Server error updating order" });
