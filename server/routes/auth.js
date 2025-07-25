@@ -34,9 +34,12 @@ router.get("/all/:currentUserId", async (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
+    console.log("REGISTER ATTEMPT - Request Body:", req.body);
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+
+      console.log("REGISTER ERROR: Email already registered:", email);
       return res.status(400).json({ msg: "Email already registered" });
     }
 
@@ -46,6 +49,8 @@ router.post("/register", async (req, res) => {
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
+
+    console.log("REGISTER SUCCESS for user:", newUser.username);
 
     res.status(201).json({
       msg: `Welcome, ${newUser.username}!`,
@@ -58,40 +63,53 @@ router.post("/register", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Registration error:", err);
+    console.error("Registration error (catch block):", err);
     res.status(500).json({ msg: "Server error during registration" });
   }
 });
 
 // LOGIN
-  router.post("/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password, role } = req.body;
 
   try {
+    console.log("LOGIN ATTEMPT - Request Body:", req.body);
+
     if (!email || !password || !role) {
+      console.log("LOGIN ERROR: Missing email, password, or role in request.");
       return res.status(400).json({ msg: "Email, password, and role are required." });
     }
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Invalid email or password" });
+    if (!user) {
+      console.log("LOGIN ERROR: User not found for email:", email);
+      return res.status(400).json({ msg: "Invalid email or password" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
+    if (!isMatch) {
+      console.log("LOGIN ERROR: Password mismatch for user:", email);
+      return res.status(400).json({ msg: "Invalid email or password" });
+    }
 
     if (user.role !== role) {
-      return res.status(400).json({ msg: "Invalid role for this account." });
+      console.log(`LOGIN ERROR: Role mismatch for user ${email}. Expected ${role}, but found ${user.role} in DB.`);
+      return res.status(400).json({ msg: "Invalid role selected for this account." });
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
+    // ADDED LOGGING: Indicate successful login
+    console.log("LOGIN SUCCESS for user:", user.username);
+
     res.json({
       token,
       user: { id: user._id, username: user.username, role: user.role },
     });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Login error (catch block):", err);
     res.status(500).json({ msg: "Server error during login" });
   }
 });
@@ -106,12 +124,11 @@ router.post("/forgot-password", async (req, res) => {
 
     const token = crypto.randomBytes(32).toString("hex");
     user.resetToken = token;
-    user.resetTokenExpiry = Date.now() + 1000 * 60 * 15; // 15 minutes
+    user.resetTokenExpiry = Date.now() + 1000 * 60 * 15;
     await user.save();
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
-    // TODO: Send email in production
     res.json({ msg: "Reset link generated", resetLink });
   } catch (err) {
     console.error("Forgot password error:", err);
