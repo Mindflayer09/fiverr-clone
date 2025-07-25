@@ -51,7 +51,7 @@ router.post("/register", async (req, res) => {
       msg: `Welcome, ${newUser.username}!`,
       token,
       user: {
-        id: newUser._id, // ✅ Corrected from _id to id
+        id: newUser._id,
         username: newUser.username,
         email: newUser.email,
         role: newUser.role,
@@ -64,15 +64,23 @@ router.post("/register", async (req, res) => {
 });
 
 // LOGIN
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  router.post("/login", async (req, res) => {
+  const { email, password, role } = req.body;
 
   try {
+    if (!email || !password || !role) {
+      return res.status(400).json({ msg: "Email, password, and role are required." });
+    }
+
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "Invalid email or password" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
+
+    if (user.role !== role) {
+      return res.status(400).json({ msg: "Invalid role for this account." });
+    }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",
@@ -80,7 +88,7 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, username: user.username, role: user.role }, // ✅ Corrected from _id to id
+      user: { id: user._id, username: user.username, role: user.role },
     });
   } catch (err) {
     console.error("Login error:", err);
