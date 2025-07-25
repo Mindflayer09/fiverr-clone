@@ -11,10 +11,11 @@ function Register() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", data);
+      const res = await axios.post(`${BASE_URL}/api/auth/register`, data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success(`Welcome ${res.data.user.username}! 🎉 Please log in to continue.`);

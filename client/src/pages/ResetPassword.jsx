@@ -7,10 +7,11 @@ const ResetPassword = () => {
   const { token } = useParams();
   const { register, handleSubmit, reset } = useForm();
   const navigate = useNavigate();
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   const onSubmit = async (data) => {
     try {
-      await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, data);
+      await axios.post(`${BASE_URL}/api/auth/reset-password/${token}`, data);
       alert("Password reset successful");
       reset();
       navigate("/login");

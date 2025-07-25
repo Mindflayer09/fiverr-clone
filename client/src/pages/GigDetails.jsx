@@ -10,12 +10,13 @@ export default function GigDetails() {
   const [user, setUser] = useState(null);
   const [orderCompleted, setOrderCompleted] = useState(false);
   const [alreadyOrdered, setAlreadyOrdered] = useState(false);
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchGigAndOrders = async () => {
       try {
         // Fetch gig
-        const gigRes = await axios.get(`http://localhost:5000/api/gigs/${id}`);
+        const gigRes = await axios.get(`${BACKEND_URL}/api/gigs/${id}`);
         setGig(gigRes.data);
 
         // Get logged-in user
@@ -24,7 +25,7 @@ export default function GigDetails() {
 
         if (loggedInUser?.role === "client") {
           const orderRes = await axios.get(
-            `http://localhost:5000/api/orders/user/${loggedInUser._id}`,
+            `${BACKEND_URL}/api/orders/user/${loggedInUser._id}`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -61,7 +62,7 @@ export default function GigDetails() {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/orders",
+        `${BACKEND_URL}/api/orders`,
         {
           buyerId: user._id,
           sellerId: gig.userId,

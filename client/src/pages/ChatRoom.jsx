@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../components/DashboardLayout";
 import { toast } from "react-toastify";
 
-const socket = io("http://localhost:5000", {
+const socket = io(process.env.REACT_APP_BACKEND_URL, {
   withCredentials: true,
 });
 

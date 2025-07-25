@@ -21,6 +21,7 @@ export default function AddGig() {
   const { user, token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("No file chosen");
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
     if (!user || user.role !== "freelancer") {
@@ -44,7 +45,7 @@ export default function AddGig() {
     formData.append("image", file);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/upload/gig-image", formData, {
+      const res = await axios.post(`${BACKEND_URL}/api/upload/gig-image`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -83,7 +84,7 @@ export default function AddGig() {
     console.log("DEBUG: Gig Payload BEFORE sending to backend:", gigPayload);
 
     await axios.post(
-      "http://localhost:5000/api/gigs",
+      `${BACKEND_URL}/api/gigs`,
       gigPayload,
       {
         headers: {

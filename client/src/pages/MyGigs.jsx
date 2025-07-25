@@ -78,7 +78,7 @@ const MyGigs = () => {
           <p className="text-center text-red-600 text-lg font-semibold">{error}</p>
         ) : gigs.length === 0 ? (
           <p className="text-center text-gray-600 text-lg">
-            You haven’t created any gigs yet.
+            You haven't created any gigs yet.
           </p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

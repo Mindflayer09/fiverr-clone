@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import GigCard from "../components/GigCard";
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
-
 export default function Gigs() {
   const [gigs, setGigs] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchGigs = async () => {

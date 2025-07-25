@@ -4,10 +4,11 @@ import axios from "axios";
 
 const ForgotPassword = () => {
   const { register, handleSubmit, reset } = useForm();
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/forgot-password", data);
+      const res = await axios.post(`${BACKEND_URL}/api/auth/forgot-password`, data);
       alert(`Reset link: ${res.data.resetLink}`);
       reset();
     } catch (err) {

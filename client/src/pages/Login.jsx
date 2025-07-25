@@ -14,10 +14,11 @@ function Login() {
   const { login } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", data);
+      const res = await axios.post(`${BASE_URL}/api/auth/login`, data);
       const { token, user } = res.data;
 
       if (!token || !user) {
