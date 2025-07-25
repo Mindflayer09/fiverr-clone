@@ -1,43 +1,44 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
 import { verifyToken } from "../middleware/verifyToken.js";
 
-const router = express.Router();
+dotenv.config();
 
-// Directory where images will be saved
-const gigUploadPath = path.join("uploads", "gigs");
-
-// Ensure directory exists
-fs.mkdirSync(gigUploadPath, { recursive: true });
-
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, gigUploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const sanitizedFilename = file.originalname.replace(/\s+/g, "_");
-    cb(null, `gig-${uniqueSuffix}-${sanitizedFilename}`);
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
 });
 
-const upload = multer({ storage });
+const router = express.Router();
+const storage = multer.memoryStorage(); 
 
-// POST /api/upload/gig-image
-router.post("/gig-image", verifyToken, upload.single("image"), (req, res) => {
+const upload = multer({ storage: storage });
+
+router.post("/gig-image", verifyToken, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
+    
+    const result = await cloudinary.uploader.upload(
+      `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
+      {
+        folder: "gig_images",
+        resource_type: "auto",
+      }
+    );
 
-    const imageUrl = `/uploads/gigs/${req.file.filename}`;
-    return res.status(200).json({ url: imageUrl });
+    const imageUrl = result.secure_url;
+    
+    console.log("✅ Image uploaded to Cloudinary:", imageUrl);
+    return res.status(200).json({ url: imageUrl }); 
   } catch (error) {
-    console.error("Image upload error:", error);
-    return res.status(500).json({ error: "Failed to upload image" });
+    console.error("❌ Image upload to Cloudinary failed:", error);
+    return res.status(500).json({ error: "Failed to upload image to Cloudinary." });
   }
 });
 

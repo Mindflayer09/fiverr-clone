@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "http://localhost:5000"; // Your backend URL
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 export default function GigCard({ gig }) {
   const {
@@ -18,7 +18,10 @@ export default function GigCard({ gig }) {
   const navigate = useNavigate();
   const { user, token } = useContext(AuthContext);
 
-  const imageUrl = images?.[0] ? `${BASE_URL}${images[0]}` : "/default.jpg";
+  const imageUrl = images?.[0]
+    ? images[0]
+    : "/default.png";
+  console.log("Image URL:", imageUrl); 
 
   const handleOrder = async () => {
     if (!user || user.role !== "client") {

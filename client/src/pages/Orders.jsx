@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { FaComments } from "react-icons/fa"; 
 import { toast } from 'react-toastify';
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 const Orders = () => {
   const { user, token, loading } = useAuth();

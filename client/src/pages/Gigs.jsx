@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import GigCard from "../components/GigCard";
 
-const BASE_URL = "http://localhost:5000"; // adjust if deployed
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 export default function Gigs() {
   const [gigs, setGigs] = useState([]);

@@ -15,7 +15,12 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
     ? format(new Date(order.createdAt), "dd/MM/yyyy")
     : "Unknown Date";
 
-  const handleMessage = () => {
+  const handleCardClick = () => {
+    navigate("/orders");
+  };
+
+  const handleMessage = (e) => {
+    e.stopPropagation();
     if (order?._id) {
       navigate(`/orders/${order._id}/chat`);
     } else {
@@ -23,7 +28,8 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
     }
   };
 
-  const handleApprove = async () => {
+  const handleApprove = async (e) => {
+    e.stopPropagation();
     try {
       const res = await axios.put(`/api/orders/${order._id}/status`, {
         status: "pending",
@@ -39,8 +45,14 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
   };
 
   console.log("Order:", order);
+  const userToDisplay = isReceived ? order.buyerId : order.sellerId;
+  const userRole = isReceived ? "Client" : "Freelancer";
+
   return (
-    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all">
+    <div
+      onClick={handleCardClick}
+      className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer"
+    >
       {/* Header Row */}
       <div className="flex justify-between items-start mb-3">
         <div className="space-y-1">
@@ -54,9 +66,7 @@ const OrderCard = ({ order, isReceived = true, onStatusChange }) => {
             <p className="text-sm text-gray-600 flex items-center gap-1">
               <FaUser className="text-gray-400" />
               <span>
-                {isReceived
-                  ? `Client: ${order.client?.username || "Unknown"}`
-                  : `Freelancer: ${order.freelancer?.username || "Unknown"}`}
+                {userRole} : {userToDisplay?.username || "Unknown"}
               </span>
             </p>
           )}

@@ -9,13 +9,14 @@ const router = express.Router();
 // CREATE a new Gig
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const { title, description, category, price } = req.body;
+    const { title, description, category, price, images } = req.body;
     const newGig = new Gig({
       userId: req.user.id,
       title,
       description,
       category,
       price,
+      images,
     });
     const savedGig = await newGig.save();
     console.log("✅ New gig created:", savedGig._id);
