@@ -74,7 +74,7 @@ const Orders = () => {
   };
 
   if (loading) {
-    return <p className="text-center text-gray-500 mt-10">Loading orders...</p>;
+    return <p className="text-center text-gray-500 mt-10 animate-pulse">Loading orders...</p>;
   }
 
   return (
