@@ -5,7 +5,7 @@ const logos = [
   { name: "Google", src: "/logos/google.svg" },
   { name: "Netflix", src: "/logos/netflix.svg" },
   { name: "PayPal", src: "/logos/paypal.svg" },
-  { name: "Payoneer", src: "/logos/Payoneer.svg" },
+  { name: "Payoneer", src: "/logos/payoneer.svg" },
 ];
 
 const BrandLogos = () => {
