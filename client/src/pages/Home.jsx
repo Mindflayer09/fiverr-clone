@@ -20,11 +20,15 @@ const Home = () => {
           <BrandLogos />
         </div>
       </section>
-      {/* Popular Categories */}
-      <PopularCategories />
+      <section className="py-8 px-6 md:px-20">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Popular Categories</h2>
+          <PopularCategories />
+      </section>
 
-      {/* Popular Services */}
-      <PopularServices />
+      <section className="py-8 px-6 md:px-20">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Top Services</h2>
+          <PopularServices />
+      </section>
     </div>
   );
 };

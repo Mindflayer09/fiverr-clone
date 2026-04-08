@@ -1,18 +1,15 @@
+// models/Gig.js
 import mongoose from "mongoose";
 
-const gigSchema = new mongoose.Schema(
+const GigSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     title: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    images: [String], // can hold multiple image URLs
+    images: { type: [String], required: true },
+    userId: { type: String, required: true },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Gig", gigSchema);
+export default mongoose.model("Gig", GigSchema);

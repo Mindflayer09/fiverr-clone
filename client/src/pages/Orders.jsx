@@ -1,39 +1,51 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+
+const BASE_URL = "http://localhost:5000";
 
 const Orders = () => {
+  const { user, token, loading } = useAuth();
   const [orders, setOrders] = useState([]);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/orders/user/${user._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setOrders(res.data);
-      } catch (err) {
-        console.error("Failed to fetch orders", err);
-      }
-    };
+  const fetchOrders = async () => {
+    if (!user || !user.id || !token) {
+      console.warn("🔒 Missing user or token in AuthContext");
+      return;
+    }
 
-    fetchOrders();
-  }, [user._id, token]);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/orders/user/${user.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setOrders(res.data);
+    } catch (err) {
+      console.error("❌ Failed to fetch orders:", err.response?.data || err.message);
+    }
+  };
+
+  fetchOrders();
+}, [user, token]);
+
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/orders/${orderId}`,
+        `${BASE_URL}/api/orders/${orderId}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setOrders((prev) =>
-        prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
+        prev.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order
+        )
       );
     } catch (err) {
-      console.error("Status update failed", err);
+      console.error("❌ Status update failed:", err);
     }
   };
 
@@ -51,6 +63,10 @@ const Orders = () => {
         return "bg-gray-100 text-gray-700";
     }
   };
+
+  if (loading) {
+    return <p className="text-center text-gray-500">Loading orders...</p>;
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
@@ -89,7 +105,7 @@ const Orders = () => {
                 </div>
               </div>
 
-              {user.role === "freelancer" && (
+              {user?.role === "freelancer" && (
                 <div className="mt-4">
                   <label className="text-sm text-gray-600 font-medium mr-2">
                     Update Status:

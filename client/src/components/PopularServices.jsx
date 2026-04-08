@@ -3,52 +3,57 @@ import React from "react";
 const services = [
   {
     label: "Vibe Coding",
-    image:
-      "https://fiverr-res.cloudinary.com/q_auto,f_auto,w_440,dpr_1.0/v1/attachments/generic_asset/asset/7d48a5ad6cc46b8470eec3fbc6b9e1df-1688624698485/vibe-coding.png",
+    image: "/services/vibe-coding.jpg",
   },
   {
     label: "Website Development",
-    image:
-      "https://fiverr-res.cloudinary.com/q_auto,f_auto,w_440,dpr_1.0/v1/attachments/generic_asset/asset/5045a0aa84a9bb94d49b08d94f4e4f20-1687331320131/web-dev.png",
+    image: "/services/web-dev.jpg",
   },
   {
     label: "Video Editing",
-    image:
-      "https://fiverr-res.cloudinary.com/q_auto,f_auto,w_440,dpr_1.0/v1/attachments/generic_asset/asset/8dcaa25b19c84c4fd5bc44f276bf1b85-1687331478376/video-editing.png",
+    image: "/services/video-editing.jpg",
   },
   {
     label: "Software Development",
-    image:
-      "https://fiverr-res.cloudinary.com/q_auto,f_auto,w_440,dpr_1.0/v1/attachments/generic_asset/asset/562da6d5ef1d6ab6206c8cc1e53e9f13-1687331841743/software-dev.png",
+    image: "/services/software-dev.jpg",
   },
   {
     label: "SEO",
-    image:
-      "https://fiverr-res.cloudinary.com/q_auto,f_auto,w_440,dpr_1.0/v1/attachments/generic_asset/asset/562da6d5ef1d6ab6206c8cc1e53e9f13-1687331841743/seo.png",
+    image: "/services/seo.jpg",
   },
   {
     label: "Architecture & Interior Design",
-    image:
-      "https://fiverr-res.cloudinary.com/q_auto,f_auto,w_440,dpr_1.0/v1/attachments/generic_asset/asset/12c62c198a2ac66f4b231d0c693efab4-1687331944984/architecture-design.png",
+    image: "/services/architecture-design.jpg",
   },
 ];
 
 const PopularServices = () => {
   return (
-    <div className="px-6 pb-12">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Popular services</h2>
-      <div className="flex overflow-x-auto gap-6">
-        {services.map((srv, index) => (
+    <section className="px-6 md:px-20 py-12 bg-gray-50">
+      <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-left">
+        Popular Services
+      </h2>
+
+      <div className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 pb-4">
+        {services.map((service, index) => (
           <div
             key={index}
-            className="flex-shrink-0 w-60 bg-green-900 text-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform"
+            className="bg-white rounded-xl shadow-md min-w-[240px] w-60 flex-shrink-0 hover:shadow-lg border transition-transform duration-300 transform hover:-translate-y-1"
           >
-            <div className="px-4 pt-4 text-lg font-semibold">{srv.label}</div>
-            <img src={srv.image} alt={srv.label} className="w-full h-36 object-cover mt-2" />
+            <img
+              src={service.image}
+              alt={service.label}
+              className="w-full h-36 object-cover rounded-t-xl"
+            />
+            <div className="p-4">
+              <h3 className="text-md font-semibold text-gray-800 text-center">
+                {service.label}
+              </h3>
+            </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

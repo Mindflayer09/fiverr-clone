@@ -1,26 +1,70 @@
-// client/src/components/GigCard.jsx
+import axios from "axios";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = "http://localhost:5000"; // Your backend URL
+
 export default function GigCard({ gig }) {
+  const {
+    _id: gigId,
+    title,
+    description,
+    price,
+    images,
+    userId: sellerId,
+  } = gig;
+
   const navigate = useNavigate();
+  const { user, token } = useContext(AuthContext);
+
+  const imageUrl = images?.[0] ? `${BASE_URL}${images[0]}` : "/default.jpg";
+
+  const handleOrder = async () => {
+    if (!user || user.role !== "client") {
+      alert("⚠️ You must be logged in as a client to place an order.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/orders`,
+        {
+          sellerId,
+          gigId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      alert("✅ Order placed successfully!");
+    } catch (err) {
+      console.error("❌ Order error:", err?.response?.data || err.message);
+      alert(`❌ Failed to place order: ${err?.response?.data?.message || "Server error"}`);
+    }
+  };
 
   return (
-    <div
-      onClick={() => navigate(`/gig/${gig._id}`)}
-      className="bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-hidden border border-gray-100"
-    >
+    <div className="border rounded-lg shadow hover:shadow-lg transition p-4 bg-white flex flex-col justify-between">
       <img
-        src={gig.images[0]}
-        alt={gig.title}
-        className="w-full h-48 object-cover"
+        src={imageUrl}
+        alt={title}
+        className="w-full h-48 object-cover rounded-md mb-4"
       />
-      <div className="p-4">
-        <h2 className="text-lg font-semibold text-gray-800 mb-2">{gig.title}</h2>
-        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-          {gig.description}
-        </p>
-        <p className="text-green-600 font-bold text-right">₹{gig.price}</p>
-      </div>
+      <h2 className="text-lg font-semibold text-gray-800 mb-2">{title}</h2>
+      <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
+      <p className="text-green-700 font-bold mt-4">${price}</p>
+      <button
+        onClick={handleOrder}
+        className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
+      >
+        🛒 Order Now
+      </button>
     </div>
   );
 }
