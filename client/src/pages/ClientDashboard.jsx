@@ -42,9 +42,9 @@ const ClientDashboard = () => {
   }
 
   // Quick calculations for the stats row
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
+  const pendingOrders = orders.filter((o) => o.status !== "completed").length;
   const completedOrders = orders.filter((o) => o.status === "completed").length;
-
+  
   return (
     <DashboardLayout>
       {/* Header Section */}

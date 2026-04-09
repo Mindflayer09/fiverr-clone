@@ -43,9 +43,9 @@ const FreelancerDashboard = () => {
   }
 
   // Quick calculations for the stats row
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
+  const pendingOrders = orders.filter((o) => o.status !== "completed").length;
   const completedOrders = orders.filter((o) => o.status === "completed").length;
-
+  
   return (
     <DashboardLayout>
       {/* 1. Header Section */}
@@ -68,7 +68,7 @@ const FreelancerDashboard = () => {
           <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center text-2xl">⏳</div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Pending Orders</p>
-            <p className="text-2xl font-bold text-gray-800">{pendingOrders || orders.length}</p>
+            <p className="text-2xl font-bold text-gray-800">{pendingOrders}</p>
           </div>
         </div>
 
