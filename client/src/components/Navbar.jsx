@@ -17,7 +17,7 @@ const Navbar = () => {
     <nav className="bg-black text-white px-6 py-4 shadow-md flex justify-between items-center flex-wrap">
       {/* Brand */}
       <Link to="/" className="text-2xl font-bold text-green-500">
-        Fiverr.
+        Skill Bridge.
       </Link>
 
       {/* Navigation Links */}
