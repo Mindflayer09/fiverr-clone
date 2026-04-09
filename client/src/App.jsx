@@ -1,7 +1,7 @@
 // client/src/App.js
 
 import React from "react";
-import { BrowserRouter as Router, Routes, Route , useParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import MyGigs from "./pages/MyGigs";
@@ -16,12 +16,13 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import AddGig from "./pages/AddGig";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://fiverr-clone-r566.onrender.com");
 
 const user = JSON.parse(localStorage.getItem("user") || "null");
-const userId = user?._id; //  Safe access
-
-socket.emit("join", userId);
+const userId = user?._id;
+if (userId) {
+  socket.emit("join", userId);
+}
 
 const ChatWrapper = () => {
   const { id } = useParams();
@@ -30,10 +31,9 @@ const ChatWrapper = () => {
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100"> {/* ✅ Gray background wrapper */}
-
-    <Router>
-    <Navbar /> {/* ✅ Appears on every page */}
+    <div className="min-h-screen bg-gray-100">
+      <Router>
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
@@ -48,7 +48,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/home" element={<Home />} />
         </Routes>
-    </Router>
+      </Router>
     </div>
   );
 }
