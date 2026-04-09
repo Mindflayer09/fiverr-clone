@@ -16,7 +16,6 @@ function Login() {
 
   const onSubmit = async (data) => {
     try {
-      // ✅ FIX: Removed quotes around process.env and used template literals (backticks)
       const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/login`, data);
       const { token, user } = res.data;
 

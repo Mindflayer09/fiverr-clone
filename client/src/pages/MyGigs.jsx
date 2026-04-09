@@ -3,8 +3,6 @@ import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 import { getLoggedInUser } from "../utils/getLoggedInUser";
 
-const BASE_URL = "process.env.REACT_APP_BACKEND_URL";
-
 const MyGigs = () => {
   const [gigs, setGigs] = useState([]);
   const [loading, setLoading] = useState(true);
