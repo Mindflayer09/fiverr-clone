@@ -4,7 +4,7 @@ import { FaSpinner } from "react-icons/fa";
 import { getLoggedInUser } from "../utils/getLoggedInUser";
 
 // Replace this with: import.meta.env.VITE_API_BASE_URL in production
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "process.env.REACT_APP_BACKEND_URL";
 
 const MyGigs = () => {
   const [gigs, setGigs] = useState([]);

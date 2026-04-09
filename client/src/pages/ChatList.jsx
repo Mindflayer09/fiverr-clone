@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("process.env.REACT_APP_BACKEND_URL");
 
 const ChatList = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -18,7 +18,7 @@ const ChatList = () => {
 
   useEffect(() => {
     const fetchChatUsers = async () => {
-      const res = await axios.get(`http://localhost:5000/api/orders/user/${user._id}`, {
+      const res = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/orders/user/${user._id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
@@ -30,8 +30,8 @@ const ChatList = () => {
 
       const chatList = await Promise.all(
         uniqueIds.map(async (id) => {
-          const userRes = await axios.get(`http://localhost:5000/api/auth/user/${id}`);
-          const msgRes = await axios.get(`http://localhost:5000/api/messages/${user._id}/${id}`, {
+          const userRes = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/auth/user/${id}`);
+          const msgRes = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/messages/${user._id}/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           });
           const lastMsg = msgRes.data[msgRes.data.length - 1];

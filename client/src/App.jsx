@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import AddGig from "./pages/AddGig";
+import { AuthProvider } from "./context/AuthContext";
 
 const socket = io("https://fiverr-clone-r566.onrender.com");
 
@@ -32,6 +33,7 @@ const ChatWrapper = () => {
 function App() {
   return (
     <div className="min-h-screen bg-gray-100">
+      <AuthProvider>
       <Router>
         <Navbar />
         <Routes>
@@ -49,6 +51,7 @@ function App() {
           <Route path="/home" element={<Home />} />
         </Routes>
       </Router>
+      </AuthProvider>
     </div>
   );
 }

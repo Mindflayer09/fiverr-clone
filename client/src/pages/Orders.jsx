@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "process.env.REACT_APP_BACKEND_URL";
 
 const Orders = () => {
   const { user, token, loading } = useAuth();

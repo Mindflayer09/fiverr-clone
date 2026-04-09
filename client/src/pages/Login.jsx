@@ -15,7 +15,7 @@ function Login() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", data);
+      const res = await axios.post("process.env.REACT_APP_BACKEND_URL/api/auth/login", data);
       const { token, user } = res.data;
 
       if (!token || !user) {

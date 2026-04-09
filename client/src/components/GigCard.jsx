@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "http://localhost:5000"; // Your backend URL
+const BASE_URL = "process.env.REACT_APP_BACKEND_URL"; // Your backend URL
 
 export default function GigCard({ gig }) {
   const {

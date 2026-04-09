@@ -14,7 +14,7 @@ export default function GigDetails() {
     const fetchGigAndOrders = async () => {
       try {
         // Fetch Gig
-        const gigRes = await axios.get(`http://localhost:5000/api/gigs/${id}`);
+        const gigRes = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/gigs/${id}`);
         setGig(gigRes.data);
 
         // Get user from localStorage
@@ -24,7 +24,7 @@ export default function GigDetails() {
         // If user is client, fetch orders to check if completed
         if (loggedInUser?.role === "client") {
           const orderRes = await axios.get(
-            `http://localhost:5000/api/orders/user/${loggedInUser._id}`
+            `process.env.REACT_APP_BACKEND_URL/api/orders/user/${loggedInUser._id}`
           );
 
           const completed = orderRes.data.some(
@@ -50,7 +50,7 @@ export default function GigDetails() {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/orders",
+        "process.env.REACT_APP_BACKEND_URL/api/orders",
         {
           buyerId: user._id,
           sellerId: gig.userId,

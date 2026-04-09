@@ -42,7 +42,7 @@ export default function AddGig() {
     formData.append("image", file);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/upload/gig-image", formData, {
+      const res = await axios.post("process.env.REACT_APP_BACKEND_URL/api/upload/gig-image", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -67,7 +67,7 @@ export default function AddGig() {
       const imageUrl = await uploadImage(imageFile);
 
       await axios.post(
-        "http://localhost:5000/api/gigs",
+        "process.env.REACT_APP_BACKEND_URL/api/gigs",
         {
           title: data.title,
           description: data.description,

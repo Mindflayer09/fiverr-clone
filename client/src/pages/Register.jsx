@@ -12,7 +12,7 @@ function Register() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", data);
+      const res = await axios.post("process.env.REACT_APP_BACKEND_URL/api/auth/register", data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success(`Welcome, ${res.data.user.username}! 🎉`);
