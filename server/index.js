@@ -16,12 +16,10 @@ dotenv.config();
 
 // ✅ Express app
 const app = express();
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://fiverr-clone-liart.vercel.app'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // ✅ API Routes
@@ -39,10 +37,10 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: ['http://localhost:3000', 'https://fiverr-clone-liart.vercel.app'],
     methods: ["GET", "POST"],
-    credentials: true,
-  },
+    credentials: true
+  }
 });
 
 // ✅ Track online users
