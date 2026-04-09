@@ -10,7 +10,7 @@ const ResetPassword = () => {
 
   const onSubmit = async (data) => {
     try {
-      await axios.post(`process.env.REACT_APP_BACKEND_URL/api/auth/reset-password/${token}`, data);
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/reset-password/${token}`, data);
       alert("Password reset successful");
       reset();
       navigate("/login");

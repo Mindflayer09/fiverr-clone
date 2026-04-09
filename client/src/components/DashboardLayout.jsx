@@ -13,21 +13,30 @@ const DashboardLayout = ({ children }) => {
     }`;
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+   <div className="min-h-screen flex bg-gray-100">
       <aside className="w-64 bg-white border-r shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>
 
         <nav className="space-y-2">
           <Link to="/" className={linkClass("/")}>🏠 Home</Link>
+          <Link to="/dashboard" className={linkClass("/dashboard")}>📊 Overview</Link>
 
-          {user?.role === "freelancer" && (
+          {/* ✅ Freelancer Links */}
+          {user?.role?.toLowerCase() === "freelancer" && (
             <>
               <Link to="/my-gigs" className={linkClass("/my-gigs")}>📋 My Gigs</Link>
               <Link to="/add-gig" className={linkClass("/add-gig")}>➕ Add Gig</Link>
+              {/* Freelancers see Orders Received */}
+              <Link to="/orders" className={linkClass("/orders")}>📥 Orders Received</Link>
             </>
           )}
 
-          <Link to="/orders" className={linkClass("/orders")}>📦 Orders</Link>
+          {/* ✅ Client Links */}
+          {/* Clients see Orders Placed (Moved comment outside the parentheses!) */}
+          {user?.role?.toLowerCase() === "client" && (
+            <Link to="/orders" className={linkClass("/orders")}>📦 Orders Placed</Link>
+          )}
+
           <Link to="/chat/0" className={linkClass("/chat/0")}>💬 Chat</Link>
         </nav>
       </aside>

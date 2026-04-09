@@ -42,15 +42,15 @@ export default function AddGig() {
     formData.append("image", file);
 
     try {
-      const res = await axios.post("process.env.REACT_APP_BACKEND_URL/api/upload/gig-image", formData, {
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/upload/gig-image`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-      return res.data?.url || res.data?.path;
+      return res.data?.secure_url || res.data?.url || res.data?.path;
     } catch (err) {
-      console.error("Image upload failed:", err);
+      console.error("❌ Image upload failed:", err);
       return null;
     }
   };
@@ -66,8 +66,15 @@ export default function AddGig() {
       const imageFile = data.image[0];
       const imageUrl = await uploadImage(imageFile);
 
+      // ✅ 1. ADDED GUARD: Stop if the image failed to upload
+      if (!imageUrl) {
+        alert("❌ Failed to upload image. Gig creation stopped.");
+        setLoading(false);
+        return;
+      }
+
       await axios.post(
-        "process.env.REACT_APP_BACKEND_URL/api/gigs",
+        `${process.env.REACT_APP_BACKEND_URL}/api/gigs`,
         {
           title: data.title,
           description: data.description,

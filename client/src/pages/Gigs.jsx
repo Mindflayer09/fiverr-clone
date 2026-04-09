@@ -13,7 +13,7 @@ export default function Gigs() {
   useEffect(() => {
     const fetchGigs = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/gigs`);
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/gigs`);
         setGigs(res.data);
       } catch (err) {
         console.error("Failed to fetch gigs:", err);

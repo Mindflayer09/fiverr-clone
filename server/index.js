@@ -4,12 +4,19 @@ import dotenv from "dotenv";
 import cors from "cors";
 import http from "http"; // For socket.io
 import { Server } from "socket.io";
+import path from "path";
+import { fileURLToPath } from "url"; // ✅ 1. Import url module
 
 // ✅ Import Routes
 import authRoutes from "./routes/Auth.js";
 import gigRoutes from "./routes/Gigs.js";
 import orderRoutes from "./routes/order.js";
 import messageRoutes from "./routes/messages.js";
+import uploadRoutes from "./routes/upload.js";
+
+// ✅ 2. Recreate __filename and __dirname for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ✅ Load .env
 dotenv.config();
@@ -22,11 +29,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// ✅ 3. Static folder setup (Now works perfectly with __dirname)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ✅ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/gigs", gigRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // ✅ Default route
 app.get("/", (req, res) => {
@@ -88,7 +99,8 @@ io.on("connection", (socket) => {
 
 // ✅ Connect to DB and launch server
 mongoose
-  .connect(process.env.MONGO_URI)
+  // ✅ 4. Changed MONGO_URL to MONGO_URI to match your .env file
+  .connect(process.env.MONGO_URL) 
   .then(() => {
     console.log("✅ MongoDB connected successfully");
     server.listen(process.env.PORT || 5000, () => {

@@ -13,18 +13,17 @@ export default function GigDetails() {
   useEffect(() => {
     const fetchGigAndOrders = async () => {
       try {
-        // Fetch Gig
-        const gigRes = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/gigs/${id}`);
+        const gigRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/gigs/${id}`);
         setGig(gigRes.data);
 
-        // Get user from localStorage
         const loggedInUser = JSON.parse(localStorage.getItem("user"));
         setUser(loggedInUser);
 
-        // If user is client, fetch orders to check if completed
-        if (loggedInUser?.role === "client") {
+        const userId = loggedInUser?.id || loggedInUser?._id;
+
+        if (loggedInUser?.role === "client" && userId) {
           const orderRes = await axios.get(
-            `process.env.REACT_APP_BACKEND_URL/api/orders/user/${loggedInUser._id}`
+            `${process.env.REACT_APP_BACKEND_URL}/api/orders/user/${userId}`
           );
 
           const completed = orderRes.data.some(
@@ -35,7 +34,6 @@ export default function GigDetails() {
         }
       } catch (err) {
         console.error("Error loading gig or orders", err);
-        alert("Error loading gig.");
       }
     };
 
@@ -48,36 +46,61 @@ export default function GigDetails() {
       return;
     }
 
+    // ✅ Grab the token and clean it
+    let token = localStorage.getItem("token");
+    
+    // Frontend safety net: stop the request if token is literally missing
+    if (!token) {
+      alert("Session expired. Please log out and log back in to refresh your token.");
+      return;
+    }
+    
+    // Sometimes localStorage saves tokens with extra quotes. This strips them.
+    token = token.replace(/^"|"$/g, '');
+
+    // ✅ Use the correct ID format
+    const safeBuyerId = user.id || user._id;
+
     try {
       await axios.post(
-        "process.env.REACT_APP_BACKEND_URL/api/orders",
+        `${process.env.REACT_APP_BACKEND_URL}/api/orders`,
         {
-          buyerId: user._id,
+          buyerId: safeBuyerId, // ✅ Use the safe variable here!
           sellerId: gig.userId,
           gigId: gig._id,
         },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Order placed successfully!");
+      alert("🎉 Order placed successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error placing order.");
+      // This will show you exactly what the backend is complaining about
+      alert(`Error: ${err.response?.data?.message || "Failed to place order."}`);
     }
   };
 
   if (!gig) return <p className="text-center mt-10">Loading...</p>;
 
+  // ✅ Safe image rendering
+  const imageUrl = (gig.images?.[0] && typeof gig.images[0] === 'string')
+    ? gig.images[0].startsWith("http")
+        ? gig.images[0]
+        : `${process.env.REACT_APP_BACKEND_URL}/${gig.images[0].replace(/^\//, "")}`
+    : "https://placehold.co/800x400?text=No+Image+Available";
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
       {/* Gig Image */}
       <img
-        src={gig.images[0]}
+        src={imageUrl}
         alt={gig.title}
         className="w-full h-64 object-cover rounded-xl shadow mb-6"
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = "https://placehold.co/800x400?text=Image+Load+Error";
+        }}
       />
 
       {/* Title, Description, Price */}
@@ -86,7 +109,7 @@ export default function GigDetails() {
       <p className="text-green-700 font-semibold text-2xl mb-6">₹{gig.price}</p>
 
       {/* Order Button */}
-      {user?.role === "client" && (
+      {user?.role?.toLowerCase() === "client" && (
         <button
           onClick={handleOrder}
           className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition mb-10"

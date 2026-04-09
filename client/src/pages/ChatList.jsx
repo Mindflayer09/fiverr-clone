@@ -18,7 +18,7 @@ const ChatList = () => {
 
   useEffect(() => {
     const fetchChatUsers = async () => {
-      const res = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/orders/user/${user._id}`, {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/orders/user/${user._id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
@@ -30,8 +30,8 @@ const ChatList = () => {
 
       const chatList = await Promise.all(
         uniqueIds.map(async (id) => {
-          const userRes = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/auth/user/${id}`);
-          const msgRes = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/messages/${user._id}/${id}`, {
+          const userRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/auth/user/${id}`);
+          const msgRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/messages/${user._id}/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           });
           const lastMsg = msgRes.data[msgRes.data.length - 1];

@@ -31,6 +31,7 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
+// ✅ Fetch user orders
 router.get("/user/:id", verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -51,6 +52,34 @@ router.get("/user/:id", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("❌ Error fetching user orders:", err);
     res.status(500).json({ message: "Server error fetching orders" });
+  }
+});
+
+// ✅ NEW: Update order status (This fixes the 404!)
+router.put("/:id", verifyToken, async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ message: "Status is required." });
+    }
+
+    // Find the order and update its status
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true } // This tells MongoDB to return the updated document, not the old one
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    res.status(200).json(updatedOrder);
+  } catch (err) {
+    console.error("❌ Error updating order status:", err);
+    res.status(500).json({ message: "Server error updating order status" });
   }
 });
 

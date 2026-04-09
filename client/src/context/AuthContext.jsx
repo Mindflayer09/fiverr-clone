@@ -38,7 +38,6 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
-  // ✅ This will now work for both `id` and `_id`
   const userId = user?.id || user?._id || null;
 
   return (

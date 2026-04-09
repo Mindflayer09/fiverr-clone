@@ -3,7 +3,6 @@ import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 import { getLoggedInUser } from "../utils/getLoggedInUser";
 
-// Replace this with: import.meta.env.VITE_API_BASE_URL in production
 const BASE_URL = "process.env.REACT_APP_BACKEND_URL";
 
 const MyGigs = () => {
@@ -33,7 +32,7 @@ const MyGigs = () => {
 
       try {
         const userId = user._id || user.id;
-        const response = await axios.get(`${BASE_URL}/api/gigs/user/${userId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/gigs/user/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -88,15 +87,14 @@ const MyGigs = () => {
                 key={gig._id}
                 className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition"
               >
-                <img
-                  src={
-                    gig.images?.[0]
-                      ? `${BASE_URL}${gig.images[0]}`
-                      : "https://via.placeholder.com/300x200?text=No+Image"
-                  }
-                  alt={gig.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
-                />
+              <img 
+  src={
+    gig.images?.[0]?.startsWith("http") 
+      ? gig.images[0] // If it's a Cloudinary link, use it directly!
+      : `${process.env.REACT_APP_BACKEND_URL}/${gig.images?.[0]?.replace(/^\//, "")}` // Fallback for old local images
+  } 
+  alt={gig.title} 
+/>
                 <h3 className="text-xl font-semibold text-gray-800 mb-1">
                   {gig.title}
                 </h3>

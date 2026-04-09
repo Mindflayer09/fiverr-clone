@@ -62,7 +62,7 @@ const Chat = ({ receiverId }) => {
     const fetchMessages = async () => {
       try {
         const res = await axios.get(
-          `process.env.REACT_APP_BACKEND_URL/api/messages/${userId}/${receiverId}`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/messages/${userId}/${receiverId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessages(res.data);
@@ -73,7 +73,7 @@ const Chat = ({ receiverId }) => {
 
     const fetchReceiver = async () => {
       try {
-        const res = await axios.get(`process.env.REACT_APP_BACKEND_URL/api/auth/user/${receiverId}`);
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/auth/user/${receiverId}`);
         setReceiver(res.data);
       } catch (err) {
         console.error("❌ Failed to fetch receiver info:", err.message);
@@ -99,7 +99,7 @@ const Chat = ({ receiverId }) => {
     socket.emit("sendMessage", message);
 
     try {
-      const res = await axios.post("process.env.REACT_APP_BACKEND_URL/api/messages", message, {
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/messages`, message, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages((prev) => [...prev, res.data]);

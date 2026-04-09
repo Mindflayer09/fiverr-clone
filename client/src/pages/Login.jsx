@@ -1,7 +1,8 @@
 import React, { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+// ✅ 1. Imported Link here
+import { useNavigate, Link } from "react-router-dom"; 
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
@@ -15,7 +16,8 @@ function Login() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("process.env.REACT_APP_BACKEND_URL/api/auth/login", data);
+      // ✅ FIX: Removed quotes around process.env and used template literals (backticks)
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/login`, data);
       const { token, user } = res.data;
 
       if (!token || !user) {
@@ -73,12 +75,21 @@ function Login() {
           </select>
         </div>
 
-        <div className="flex items-center">
-          <input type="checkbox" id="remember" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="mr-2" />
-          <label htmlFor="remember">Remember Me</label>
+        {/* ✅ 2. Grouped Remember Me and Forgot Password together */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center">
+            <input type="checkbox" id="remember" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="mr-2 cursor-pointer" />
+            <label htmlFor="remember" className="cursor-pointer">Remember Me</label>
+          </div>
+          
+          <Link to="/forgot-password" className="text-green-600 hover:text-green-700 font-medium hover:underline">
+            Forgot Password?
+          </Link>
         </div>
 
-        <button type="submit" className="w-full bg-green-600 text-white p-2 rounded">Login</button>
+        <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded transition-colors">
+          Login
+        </button>
       </form>
     </div>
   );
